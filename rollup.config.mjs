@@ -12,7 +12,7 @@ import { babel } from "@rollup/plugin-babel";
 import { DEFAULT_EXTENSIONS } from "@babel/core";
 import { rimrafSync } from "rimraf";
 import del from "rollup-plugin-delete";
-import sourcemaps from "rollup-plugin-sourcemaps";
+// import sourcemaps from "rollup-plugin-sourcemaps";
 
 rimrafSync("dist"); // 删除打包目录
 
@@ -25,7 +25,7 @@ export default defineConfig([
     output: {
       dir: pkg.module, //出口文件
       format: "es", //打包成es module模块
-      sourcemap: true,
+      // sourcemap: true,
     },
     plugins: [
       del({ targets: "dist/*" }),
@@ -42,7 +42,7 @@ export default defineConfig([
         plugins: [["@babel/plugin-transform-runtime", { useESModules: true }]],
         extensions: [...DEFAULT_EXTENSIONS],
       }),
-      sourcemaps(),
+      // sourcemaps(),
     ],
   },
 ]);
