@@ -5,7 +5,7 @@ let frames = 0;
 let lastTimestamp = performance.now();
 
 //timestamp开始执行函数的时间戳
-export default function updateFPS(timestamp) {
+export default function updateFPS(timestamp:number) {
   frames++;
 
   const deltaTime = timestamp - lastTimestamp;

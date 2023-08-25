@@ -6,12 +6,13 @@ import updateFPS from "./fps";
 import baseInfo from "./baseInfo";
 import { MAX_CACHE_LEN, MAX_WAITING_TIME, UUID } from "./constant";
 import { sendData } from "../utils";
+import { Info ,Options} from "../types";
 
-let url, //上传url
-  max, //最大缓存数
-  time, //最大缓存时间
-  events = [], //存储的数据
-  timer; //定时器ID
+let url = ""; //上传url
+let max = 0; //最大缓存数
+let time = 0; //最大缓存时间
+let events: Info[] = []; //存储的数据
+let timer: NodeJS.Timeout; //定时器ID
 
 let visitTime = Date.now();
 
@@ -22,7 +23,7 @@ export function send() {
   }
 }
 
-export function emit(type, data) {
+export function emit(type: string, data?: any) {
   const date = Date.now();
   const info = Object.assign({}, baseInfo, {
     type, //类型
@@ -33,11 +34,11 @@ export function emit(type, data) {
     uuid: localStorage.getItem(UUID), //如果已经有uuid，则用之前的
   });
   if (type === "hashchange" || type === "historychange") {
-     //停留时间 = 跳转时间 - 访问时间
+    //停留时间 = 跳转时间 - 访问时间
     Object.assign(info, { duration: date - visitTime });
     visitTime = date;
   }
-  events.push(info);
+  events.push(info as Info);
   clearTimeout(timer);
   // 满足最大记录数,立即发送
   events.length >= max
@@ -51,7 +52,7 @@ function listenBeforeunload() {
   window.addEventListener("beforeunload", send, true);
 }
 
-export default function initBase(options) {
+export default function initBase(options:Options) {
   if (!options.url) {
     console.log("@web-tracing: ", "缺少参数url");
     return;
@@ -62,6 +63,7 @@ export default function initBase(options) {
   time = options.time || MAX_WAITING_TIME;
 
   performance(); //监听性能
+  //@ts-ignore
   updateFPS(); //监听fps
   Error(); //监听错误
   pv(); //监听路由

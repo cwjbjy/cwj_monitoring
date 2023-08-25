@@ -24,7 +24,7 @@ function resourceError() {
   window.addEventListener(
     "error",
     function (e) {
-      const target = e.target;
+      const target: any = e.target;
       if (!target) return;
       if (target.src || target.href) {
         const url = target.src || target.href;
@@ -39,12 +39,17 @@ function consoleError() {
   var oldError = window.console.error;
   window.console.error = function (errorMsg) {
     emit("console_error", errorMsg);
+    //@ts-ignore
     oldError.apply(window.console, arguments);
   };
 }
 
 function promiseError() {
-  window.addEventListener("unhandledrejection", function (e) {
-    emit("promise_error", e.error.stack);
-  });
+  window.addEventListener(
+    "unhandledrejection",
+    function (e: PromiseRejectionEvent) {
+      //@ts-ignore
+      emit("promise_error", e.error.stack);
+    }
+  );
 }

@@ -7,7 +7,7 @@ export default function performance() {
 }
 
 function fp() {
-  const entryHandler = (list) => {
+  const entryHandler = (list: { getEntries: () => any; }) => {
     for (const entry of list.getEntries()) {
       if (entry.name === "first-paint") {
         observer.disconnect();
