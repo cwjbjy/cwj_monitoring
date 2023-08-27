@@ -9,8 +9,12 @@ function click() {
   window.addEventListener("click", (e) => {
     clearTimeout(timer);
     timer = setTimeout(() => {
-      console.log(e);
-      emit("click", (e.target as HTMLElement).innerHTML);
+      const target = e.target as HTMLElement;
+      emit("click", {
+        textContent: target.textContent,
+        tagName: target.tagName,
+        classList: target.classList,
+      });
     }, 500);
   });
 }

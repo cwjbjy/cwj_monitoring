@@ -16,7 +16,7 @@ export default function Error() {
  */
 function JSError() {
   window.onerror = (msg, url, line, column, error) => {
-    emit("js_error", { msg, url, line, column, error });
+    emit("error_js", { msg, url, line, column, error });
   };
 }
 
@@ -28,7 +28,7 @@ function resourceError() {
       if (!target) return;
       if (target.src || target.href) {
         const url = target.src || target.href;
-        emit("resource_error", url);
+        emit("error_resource", url);
       }
     },
     true
@@ -38,7 +38,7 @@ function resourceError() {
 function consoleError() {
   var oldError = window.console.error;
   window.console.error = function (errorMsg) {
-    emit("console_error", errorMsg);
+    emit("error_console", errorMsg);
     //@ts-ignore
     oldError.apply(window.console, arguments);
   };
@@ -49,7 +49,7 @@ function promiseError() {
     "unhandledrejection",
     function (e: PromiseRejectionEvent) {
       //@ts-ignore
-      emit("promise_error", e.error.stack);
+      emit("error_promise", e.error.stack);
     }
   );
 }

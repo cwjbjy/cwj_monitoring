@@ -7,11 +7,11 @@ export default function performance() {
 }
 
 function fp() {
-  const entryHandler = (list: { getEntries: () => any; }) => {
+  const entryHandler = (list: { getEntries: () => any }) => {
     for (const entry of list.getEntries()) {
       if (entry.name === "first-paint") {
         observer.disconnect();
-        emit("fp", entry.startTime);
+        emit("performance_fp", entry.startTime);
       }
     }
   };
@@ -23,12 +23,12 @@ function fp() {
 
 function dcl() {
   window.addEventListener("DOMContentLoaded", function (e) {
-    emit("DOMContentLoaded", e.timeStamp);
+    emit("performance_DOMContentLoaded", e.timeStamp);
   });
 }
 
 function load() {
   window.addEventListener("load", function (e) {
-    emit("load", e.timeStamp);
+    emit("performance_load", e.timeStamp);
   });
 }
