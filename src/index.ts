@@ -1,5 +1,5 @@
-import initBase, { emit } from "./lib";
-import { Options } from "./types";
+import initBase from "./lib";
+import type { Options } from "./types";
 
 const init = (function () {
   let connect = false;
@@ -11,6 +11,6 @@ const init = (function () {
   };
 })();
 
-export { init, emit };
+export { init };
 
-export default { init, emit };
+export default { init };

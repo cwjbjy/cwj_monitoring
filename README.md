@@ -29,7 +29,7 @@ npm i cwj_monitoring
 引入
 
 ```js
-import { init, emit } from "cwj_monitoring";
+import { init } from "cwj_monitoring";
 
 //使用 init 全局进行初始化
 init({ 
@@ -38,6 +38,6 @@ init({
   time: 60000, //可选参数，最大缓存时间，即超过最大缓存时间立即上传，默认30s
 });
 
-//无论vue的全局错误捕获，还是react的错误边界，都可使用emit手动上传错误
-emit(type,data)
+//无论vue的全局错误捕获，还是react的错误边界，都可使用window.$track.emit手动上传错误
+window.$track.emit(type,data)
 ```

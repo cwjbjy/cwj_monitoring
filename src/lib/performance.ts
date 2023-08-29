@@ -1,4 +1,4 @@
-import { emit } from "./index";
+import { track } from "./index";
 
 export default function performance() {
   fp(); //首次渲染时间
@@ -11,7 +11,7 @@ function fp() {
     for (const entry of list.getEntries()) {
       if (entry.name === "first-paint") {
         observer.disconnect();
-        emit("performance_fp", entry.startTime);
+        track.emit("performance_fp", entry.startTime);
       }
     }
   };
@@ -23,12 +23,12 @@ function fp() {
 
 function dcl() {
   window.addEventListener("DOMContentLoaded", function (e) {
-    emit("performance_DOMContentLoaded", e.timeStamp);
+    track.emit("performance_DOMContentLoaded", e.timeStamp);
   });
 }
 
 function load() {
   window.addEventListener("load", function (e) {
-    emit("performance_load", e.timeStamp);
+    track.emit("performance_load", e.timeStamp);
   });
 }

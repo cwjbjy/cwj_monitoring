@@ -1,21 +1,14 @@
+export type Device = {
+  browser: string; //浏览器名称
+  browser_version: string | undefined; //浏览器版本
+  os: string; //操作系统
+  ratio: number; //浏览器缩放比例
+  width: number; //浏览器宽
+  height:number; //浏览器高
+};
+
 export type BaseInfo = {
-  device: {
-    browser: {
-      name: string;
-      version: string;
-    };
-    engine: {
-      name: string;
-    };
-    os: {
-      name: string;
-      version: string;
-      versionName: string;
-    };
-    platform: {
-      type: string;
-    };
-  };
+  device: Device;
   uuid: string;
 };
 
@@ -35,3 +28,5 @@ export type Options = {
   max?: number;
   time?: number;
 };
+
+

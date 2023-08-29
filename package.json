@@ -1,6 +1,6 @@
 {
   "name": "cwj_monitoring",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "基于 JS 适用Web端的插件，为前端项目提供【 行为、性能、异常 】监控手段",
   "main": "dist",
   "module": "dist",
@@ -44,7 +44,6 @@
     "typescript": "^5.1.6"
   },
   "dependencies": {
-    "bowser": "^2.11.0",
     "uuid": "^9.0.0"
   }
 }

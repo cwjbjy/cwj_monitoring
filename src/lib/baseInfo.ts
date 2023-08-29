@@ -1,13 +1,18 @@
 import { v4 as uuidv4 } from "uuid";
-import Bowser from "bowser";
 import { UUID } from "./constant";
+import { getBrowserNameVersion, getRatio, getOs, getWH } from "../utils/device";
+import type { Device } from "../types";
 
 //基本信息
 export class BaseInfo {
-  device: Bowser.Parser.ParsedResult;
+  device: Device;
   uuid: string;
   constructor() {
-    this.device = Bowser.parse(window.navigator.userAgent); //设备信息
+    //设备信息
+    this.device = Object.assign({}, getBrowserNameVersion(), getWH(), {
+      ratio: getRatio(),
+      os: getOs(),
+    });
     if (!localStorage.getItem(UUID)) {
       this.uuid = uuidv4(); //唯一id;
       localStorage.setItem(UUID, this.uuid); //如果不存在uuid，则进行存储

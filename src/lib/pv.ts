@@ -1,4 +1,4 @@
-import { emit } from "./index";
+import { track } from "./index";
 
 export default function pv() {
   Hash(); //监听hash路由
@@ -7,7 +7,7 @@ export default function pv() {
 
 function Hash() {
   window.addEventListener("hashchange", function () {
-    emit("hashchange");
+    track.emit("hashchange");
   });
 }
 
@@ -17,14 +17,14 @@ function History() {
   window.history.pushState = function () {
     //@ts-ignore
     historyPushState.apply(window.history, arguments);
-    emit("historychange");
+    track.emit("historychange");
   };
   window.history.replaceState = function () {
     //@ts-ignore
     historyReplaceState.apply(window.history, arguments);
-    emit("historychange");
+    track.emit("historychange");
   };
   window.addEventListener("popstate", function () {
-    emit("historychange");
+    track.emit("historychange");
   });
 }

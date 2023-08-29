@@ -1,4 +1,4 @@
-import { emit } from "./index";
+import { track } from "./index";
 
 let count = 0;
 let frames = 0;
@@ -15,7 +15,7 @@ export default function updateFPS(timestamp:number) {
       count++;
       if (count >= 3) {
         //连续3次小于20的fps进行数据上报
-        emit("fps", '卡顿');
+        track.emit("fps", '卡顿');
         count = 0;
       }
     } else {

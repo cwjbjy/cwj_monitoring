@@ -1,20 +1,21 @@
-import { emit } from "./index";
+import { track } from "./index";
 
 export default function behavior() {
-  click(); //点击事件监听
-}
-
-function click() {
-  let timer: NodeJS.Timeout;
-  window.addEventListener("click", (e) => {
-    clearTimeout(timer);
-    timer = setTimeout(() => {
-      const target = e.target as HTMLElement;
-      emit("click", {
-        textContent: target.textContent,
-        tagName: target.tagName,
-        classList: target.classList,
-      });
-    }, 500);
+  ["click"].forEach(function (eventType) {
+    let timer: NodeJS.Timeout;
+    document.addEventListener(
+      eventType,
+      (e) => {
+        clearTimeout(timer);
+        timer = setTimeout(() => {
+          const target = e.target;
+          //目前只处理button标签的点击事件
+          if (target instanceof HTMLButtonElement) {
+            track.emit(eventType, target.textContent);
+          }
+        }, 300);
+      },
+      true
+    );
   });
 }

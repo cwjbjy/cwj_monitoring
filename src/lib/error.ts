@@ -1,4 +1,4 @@
-import { emit } from "./index";
+import { track } from "./index";
 
 export default function Error() {
   JSError(); //js错误
@@ -7,16 +7,9 @@ export default function Error() {
   promiseError(); //promise错误
 }
 
-/**
- * @param {String}  msg    错误信息
- * @param {String}  url    出错文件
- * @param {Number}  line    行号
- * @param {Number}  column    列号
- * @param {Object}  error  Error对象
- */
 function JSError() {
   window.onerror = (msg, url, line, column, error) => {
-    emit("error_js", { msg, url, line, column, error });
+    track.emit("error_js", { msg, url, line, column, error });
   };
 }
 
@@ -24,11 +17,20 @@ function resourceError() {
   window.addEventListener(
     "error",
     function (e) {
-      const target: any = e.target;
-      if (!target) return;
-      if (target.src || target.href) {
-        const url = target.src || target.href;
-        emit("error_resource", url);
+      const { target } = e;
+      if (
+        target instanceof HTMLLinkElement ||
+        target instanceof HTMLScriptElement ||
+        target instanceof HTMLImageElement ||
+        target instanceof HTMLAudioElement ||
+        target instanceof HTMLVideoElement ||
+        target instanceof HTMLIFrameElement
+      ) {
+        //资源加载错误
+        const url =
+          (target as HTMLImageElement | HTMLScriptElement).src ||
+          (target as HTMLLinkElement).href;
+        track.emit("error_resource", url);
       }
     },
     true
@@ -38,7 +40,7 @@ function resourceError() {
 function consoleError() {
   var oldError = window.console.error;
   window.console.error = function (errorMsg) {
-    emit("error_console", errorMsg);
+    track.emit("error_console", errorMsg);
     //@ts-ignore
     oldError.apply(window.console, arguments);
   };
@@ -49,7 +51,7 @@ function promiseError() {
     "unhandledrejection",
     function (e: PromiseRejectionEvent) {
       //@ts-ignore
-      emit("error_promise", e.error.stack);
+      track.emit("error_promise", e.error.stack);
     }
   );
 }
