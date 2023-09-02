@@ -1,9 +1,9 @@
-import BaseInfo from "./baseInfo";
-import { MAX_CACHE_LEN, MAX_WAITING_TIME, UUID } from "./constant";
-import { sendData } from "../utils";
-import events from "./cache";
+import BaseInfo from './baseInfo';
+import { MAX_CACHE_LEN, MAX_WAITING_TIME, UUID } from './constant';
+import { sendData } from '../utils';
+import events from './cache';
 
-import type { Options } from "../types/index";
+import type { Options } from '../types/index';
 
 export default class EventTrack extends BaseInfo {
   private url: string; //上报地址
@@ -35,7 +35,7 @@ export default class EventTrack extends BaseInfo {
         referrer: document.referrer, //上一次的路由
         uuid: localStorage.getItem(UUID), //如果已经有uuid，则用之前的
         duration: date - this.visitTime,
-      }
+      },
     );
     this.visitTime = date;
     return info;

@@ -1,14 +1,14 @@
-import { track } from "../index";
+import { track } from '../index';
 
-import DefinePlugin from "./definePlugin";
+import DefinePlugin from './definePlugin';
 
 class BehaviorPlugin extends DefinePlugin {
   constructor() {
-    super("behavior");
+    super('behavior');
   }
 
   monitor(): void {
-    ["click"].forEach(function (eventType) {
+    ['click'].forEach(function (eventType) {
       let timer: NodeJS.Timeout;
       document.addEventListener(
         eventType,
@@ -22,7 +22,7 @@ class BehaviorPlugin extends DefinePlugin {
             }
           }, 300);
         },
-        true
+        true,
       );
     });
   }

@@ -1,11 +1,11 @@
-import { track } from "../index";
+import { track } from '../index';
 
 let count = 0;
 let frames = 0;
 let lastTimestamp = performance.now();
 
 //timestamp开始执行函数的时间戳
-export default function updateFPS(timestamp:number) {
+export default function updateFPS(timestamp: number) {
   frames++;
 
   const deltaTime = timestamp - lastTimestamp;
@@ -15,7 +15,7 @@ export default function updateFPS(timestamp:number) {
       count++;
       if (count >= 3) {
         //连续3次小于20的fps进行数据上报
-        track.emit("fps", '卡顿');
+        track.emit('fps', '卡顿');
         count = 0;
       }
     } else {

@@ -1,7 +1,7 @@
-import { v4 as uuidv4 } from "uuid";
-import { UUID } from "./constant";
-import { getBrowserNameVersion, getRatio, getOs, getWH } from "../utils/device";
-import type { Device } from "../types/index";
+import { v4 as uuidv4 } from 'uuid';
+import { UUID } from './constant';
+import { getBrowserNameVersion, getRatio, getOs, getWH } from '../utils/device';
+import type { Device } from '../types/index';
 
 //基本信息
 export default class BaseInfo {
@@ -21,5 +21,3 @@ export default class BaseInfo {
     }
   }
 }
-
-

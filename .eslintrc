@@ -1,0 +1,32 @@
+{
+  "env": {
+    "browser": true,
+    "node": true,
+    "es2021": true
+  },
+  "parser": "@typescript-eslint/parser",
+  "extends": [
+    "eslint:recommended",
+    "plugin:@typescript-eslint/recommended",
+    "plugin:prettier/recommended",
+    "eslint-config-prettier"
+  ],
+  "parserOptions": {
+    "ecmaVersion": "latest",
+    "parser": "@typescript-eslint/parser",
+    "sourceType": "module"
+  },
+  "plugins": ["@typescript-eslint", "prettier"],
+  "rules": {
+    "@typescript-eslint/no-explicit-any": ["off"], //允许使用any
+    "@typescript-eslint/no-this-alias": [
+      "error",
+      {
+        "allowedNames": ["that"] // this可用的局部变量名称
+      }
+    ],
+    "@typescript-eslint/ban-ts-comment": "off", //允许使用@ts-ignore
+    "@typescript-eslint/no-non-null-assertion": "off", //允许使用非空断言
+    "no-debugger": "warn" //提交时不允许有debugger
+  }
+}

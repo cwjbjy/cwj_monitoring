@@ -1,9 +1,9 @@
-import { track } from "../index";
-import DefinePlugin from "./definePlugin";
+import { track } from '../index';
+import DefinePlugin from './definePlugin';
 
 class ErrorPlugin extends DefinePlugin {
   constructor() {
-    super("error");
+    super('error');
   }
 
   monitor(): void {
@@ -15,13 +15,13 @@ class ErrorPlugin extends DefinePlugin {
 
   JSError() {
     window.onerror = (msg, url, line, column, error) => {
-      track.emit("error_js", { msg, url, line, column, error });
+      track.emit('error_js', { msg, url, line, column, error });
     };
   }
 
   resourceError() {
     window.addEventListener(
-      "error",
+      'error',
       function (e) {
         const { target } = e;
         if (
@@ -32,33 +32,31 @@ class ErrorPlugin extends DefinePlugin {
           target instanceof HTMLVideoElement ||
           target instanceof HTMLIFrameElement
         ) {
-          const url =
-            (target as HTMLImageElement | HTMLScriptElement).src ||
-            (target as HTMLLinkElement).href;
-          track.emit("error_resource", url);
+          const url = (target as HTMLImageElement | HTMLScriptElement).src || (target as HTMLLinkElement).href;
+          track.emit('error_resource', url);
         }
       },
-      true
+      true,
     );
   }
 
   consoleError() {
-    var oldError = window.console.error;
-    window.console.error = function (errorMsg) {
-      track.emit("error_console", errorMsg);
-      //@ts-ignore
-      oldError.apply(window.console, arguments);
+    const oldError = window.console.error;
+    window.console.error = function (errorMsg, ...restArgs) {
+      track.emit('error_console', errorMsg);
+      oldError.apply(window.console, [errorMsg, ...restArgs]);
     };
   }
 
   promiseError() {
-    window.addEventListener(
-      "unhandledrejection",
-      function (e: PromiseRejectionEvent) {
-        //@ts-ignore
-        track.emit("error_promise", e.error.stack);
+    window.addEventListener('unhandledrejection', function (e: PromiseRejectionEvent) {
+      if (e.reason.stack) {
+        //reject中通过new Error抛出的错误
+        track.emit('error_promise', e.reason.message);
+      } else {
+        track.emit('error_promise', e.reason);
       }
-    );
+    });
   }
 }
 

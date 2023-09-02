@@ -1,5 +1,5 @@
-import initBase from "./lib";
-import type { Options } from "./types/index";
+import initBase from './lib';
+import type { Options } from './types/index';
 
 const init = (function () {
   let connect = false;

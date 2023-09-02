@@ -1,17 +1,17 @@
-import ErrorPlugin from "./plugin/error";
-import PVPlugin from "./plugin/pv";
-import BehaviorPlugin from "./plugin/behavior";
-import PerformancePlugin from "./plugin/performance";
-import EventTrack from "./eventTrack";
-import { isValidKey } from "../utils/index";
-import { EVENTTYPES } from "../types/event";
-import type { Options } from "../types/index";
+import ErrorPlugin from './plugin/error';
+import PVPlugin from './plugin/pv';
+import BehaviorPlugin from './plugin/behavior';
+import PerformancePlugin from './plugin/performance';
+import EventTrack from './eventTrack';
+import { isValidKey } from '../utils/index';
+import { EVENTTYPES } from '../types/event';
+import type { Options } from '../types/index';
 
 export let track: EventTrack;
 
 export default function initBase(options: Options) {
   if (!options.url) {
-    console.error("@web-tracing: ", "缺少参数url");
+    console.error('@web-tracing: ', '缺少参数url');
     return;
   }
 
@@ -21,7 +21,7 @@ export default function initBase(options: Options) {
   start(options);
 
   //页面刷新或卸载前主动发送数据
-  window.addEventListener("beforeunload", track.send, true);
+  window.addEventListener('beforeunload', track.send, true);
 }
 
 //根据参数启动对应的监听功能
@@ -33,7 +33,7 @@ function start(options: Options) {
       performance: true,
       router: true,
     },
-    options
+    options,
   );
   for (const key in monitorParams) {
     if (isValidKey(key, monitorParams)) {

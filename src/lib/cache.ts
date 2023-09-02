@@ -1,4 +1,4 @@
-import type { Info } from "../types/index";
+import type { Info } from '../types/index';
 
 class Events {
   cache: Info[];
