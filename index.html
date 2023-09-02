@@ -14,7 +14,7 @@
     <!-- 测试es module模块 -->
     <script type="module">
       import { init } from "./dist/index.js";
-      init({ url: "//127.0.0.1:9000/api/1" });
+      init({ url: "//127.0.0.1:9000/api/1" ,performance:false});
 
       const scriptError = document.querySelector("#script-error");
       const input = document.querySelector("#my-input");

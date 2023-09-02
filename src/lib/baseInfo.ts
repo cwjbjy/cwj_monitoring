@@ -1,10 +1,10 @@
 import { v4 as uuidv4 } from "uuid";
 import { UUID } from "./constant";
 import { getBrowserNameVersion, getRatio, getOs, getWH } from "../utils/device";
-import type { Device } from "../types";
+import type { Device } from "../types/index";
 
 //基本信息
-export class BaseInfo {
+export default class BaseInfo {
   device: Device;
   uuid: string;
   constructor() {
@@ -22,4 +22,4 @@ export class BaseInfo {
   }
 }
 
-export default new BaseInfo();
+

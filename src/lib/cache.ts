@@ -1,18 +1,18 @@
-import type { Info } from "../types";
+import type { Info } from "../types/index";
 
 class Events {
   cache: Info[];
   constructor() {
     this.cache = [];
   }
-  
-  getCacheLength() {
+
+  getLength() {
     return this.cache.length;
   }
-  addCache(data: Info) {
+  add(data: Info) {
     this.cache.push(data);
   }
-  clearCache() {
+  clear() {
     this.cache.length = 0;
   }
 }

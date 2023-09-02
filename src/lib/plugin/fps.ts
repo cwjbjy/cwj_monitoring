@@ -1,4 +1,4 @@
-import { track } from "./index";
+import { track } from "../index";
 
 let count = 0;
 let frames = 0;
