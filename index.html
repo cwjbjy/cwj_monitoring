@@ -16,15 +16,15 @@
   <!-- 测试es module模块 -->
   <script type="module">
     import { init } from "./dist/index.js";
-    init({ url: "//127.0.0.1:9000/api/1", performance: false });
+    init({ url: "//127.0.0.1:9000/api/1"});
 
     const scriptError = document.querySelector("#script-error");
     const input = document.querySelector("#my-input");
     scriptError.addEventListener("click", () => {
       // console.error('1233')
-      new Promise((resolve, reject) => {
-        reject(new Error('111'));
-      });
+      // new Promise((resolve, reject) => {
+      //   reject(new Error('111'));
+      // });
       // window.$track.emit('aa','23')
       // const a = 1;
 
@@ -36,7 +36,7 @@
       // }
     });
   </script>
-  <img src="https://yun.tuia.cn/image/kkk.png" />
+  <!-- <img src="https://yun.tuia.cn/image/kkk.png" /> -->
   <script>
 
   </script>

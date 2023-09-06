@@ -50,7 +50,7 @@ class ErrorPlugin extends DefinePlugin {
 
   promiseError() {
     window.addEventListener('unhandledrejection', function (e: PromiseRejectionEvent) {
-      if (e.reason.stack) {
+      if (e.reason instanceof Error) {
         //reject中通过new Error抛出的错误
         track.emit('error_promise', e.reason.message);
       } else {

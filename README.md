@@ -16,7 +16,7 @@ npm run server
 
 1. 行为监控：点击监控，页面跳转监控，页面停留时间监控
 2. 错误监控：js错误，资源加载错误，手动console.error抛出的错误，promise未捕获的错误
-3. 性能监控：FP、DCL、Load、FPS
+3. 性能监控：DCL、FP、FCP、LCP、Load、FPS
 
 注：目前点击监控只支持button标签触发的点击事件
 
