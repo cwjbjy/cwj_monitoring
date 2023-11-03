@@ -42,6 +42,7 @@ init({
   click:false,//可选参数，是否监听点击事件，默认监听
   performance:false,//可选参数，是否监听性能指标，默认监听
   router:false, //可选参数，是否监听路由事件，默认监听
+  data:{} //可选参数，例如项目的名称与版本号data:{vs:'0.1.1'}
 });
 
 //无论vue的全局错误捕获，还是react的错误边界，都可使用window.$track.emit手动上传错误

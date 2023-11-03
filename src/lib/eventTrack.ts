@@ -2,6 +2,7 @@ import BaseInfo from './baseInfo';
 import { MAX_CACHE_LEN, MAX_WAITING_TIME, UUID } from './constant';
 import { sendData } from '../utils';
 import events from './cache';
+import { getDate, getSeconds } from '../utils/date';
 
 import type { Options } from '../types/index';
 
@@ -11,6 +12,7 @@ export default class EventTrack extends BaseInfo {
   private time: number; //最大缓存时间
   private timer: NodeJS.Timeout | undefined; //定时器ID
   private visitTime: number; //初始化时间
+  private data: Record<string, any> | undefined;
 
   constructor(options: Options) {
     super();
@@ -19,6 +21,7 @@ export default class EventTrack extends BaseInfo {
     this.time = options.time || MAX_WAITING_TIME;
     this.timer;
     this.visitTime = Date.now();
+    this.data = options.data;
   }
 
   //格式化传输数据
@@ -30,11 +33,12 @@ export default class EventTrack extends BaseInfo {
       {
         type, //类型
         data, //自定义数据
-        date, //日期
+        date: getDate(date), //日期
         url: window.location.href, //当前路由
         referrer: document.referrer, //上一次的路由
         uuid: localStorage.getItem(UUID), //如果已经有uuid，则用之前的
-        duration: date - this.visitTime,
+        duration: getSeconds(date, this.visitTime),
+        userData: this.data, //外部传入的参数
       },
     );
     this.visitTime = date;

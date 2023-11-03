@@ -16,7 +16,7 @@ export interface BaseInfo {
 export interface Info extends BaseInfo {
   type: string;
   data: any;
-  date: number;
+  date: string;
   url: string;
   referrer: string;
 }
@@ -33,4 +33,5 @@ export interface Options extends Monitor {
   url: string;
   max?: number;
   time?: number;
+  data?: Record<string, any>;
 }
