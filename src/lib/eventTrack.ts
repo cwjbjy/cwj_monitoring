@@ -12,7 +12,7 @@ export default class EventTrack extends BaseInfo {
   private time: number; //最大缓存时间
   private timer: NodeJS.Timeout | undefined; //定时器ID
   private visitTime: number; //初始化时间
-  private data: Record<string, any> | undefined;
+  private data: any;
 
   constructor(options: Options) {
     super();

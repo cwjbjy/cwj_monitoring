@@ -33,5 +33,5 @@ export interface Options extends Monitor {
   url: string;
   max?: number;
   time?: number;
-  data?: Record<string, any>;
+  data?: any;
 }
