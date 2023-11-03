@@ -26,18 +26,9 @@ export default function initBase(options: Options) {
 
 //根据参数启动对应的监听功能
 function start(options: Options) {
-  const monitorParams = Object.assign(
-    {
-      error: true,
-      click: true,
-      performance: true,
-      router: true,
-    },
-    options,
-  );
-  for (const key in monitorParams) {
-    if (isValidKey(key, monitorParams)) {
-      if (monitorParams[key]) {
+  for (const key in options) {
+    if (isValidKey(key, options)) {
+      if (options[key]) {
         switch (key) {
           case EVENTTYPES.CLICK:
             BehaviorPlugin.monitor(); //监听用户行为

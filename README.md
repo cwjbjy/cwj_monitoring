@@ -31,20 +31,20 @@ npm i cwj_monitoring
 引入
 
 ```js
-import { init } from "cwj_monitoring";
+import { init } from 'cwj_monitoring';
 
 //使用 init 全局进行初始化
-init({ 
-  url: "http://localhost:8080", //必传参数，数据上传服务器地址
+init({
+  url: 'http://localhost:8080', //必传参数，数据上传服务器地址
   max: 10, //可选参数，最大缓存数，即超过缓存数立即上传，默认为5
   time: 60000, //可选参数，最大缓存时间，即超过最大缓存时间立即上传，默认30s
-  error:false, //可选参数，是否监听错误事件，默认监听
-  click:false,//可选参数，是否监听点击事件，默认监听
-  performance:false,//可选参数，是否监听性能指标，默认监听
-  router:false, //可选参数，是否监听路由事件，默认监听
-  data:{} //可选参数，例如项目的名称与版本号data:{vs:'0.1.1'}
+  error: true, //可选参数，是否监听错误事件，默认关闭
+  click: true, //可选参数，是否监听点击事件，默认关闭
+  performance: true, //可选参数，是否监听性能指标，默认关闭
+  router: true, //可选参数，是否监听路由事件，默认关闭
+  data: {}, //可选参数，例如项目的名称与版本号data:{vs:'0.1.1'}
 });
 
 //无论vue的全局错误捕获，还是react的错误边界，都可使用window.$track.emit手动上传错误
-window.$track.emit(type,data)
+window.$track.emit(type, data);
 ```
