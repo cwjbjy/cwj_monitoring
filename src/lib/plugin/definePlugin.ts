@@ -1,3 +1,4 @@
+/* 模板方法模式 */
 export default abstract class DefinePlugin {
   public name: string;
 

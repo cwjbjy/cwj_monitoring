@@ -16,6 +16,7 @@ class PVPlugin extends DefinePlugin {
     });
   }
 
+  /* 代理模式 */
   History() {
     const historyPushState = window.history.pushState;
     const historyReplaceState = window.history.replaceState;

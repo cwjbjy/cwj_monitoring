@@ -15,8 +15,9 @@
   </div>
   <!-- 测试es module模块 -->
   <script type="module">
-    import { init } from "./dist/index.js";
-    init({ url: "//127.0.0.1:9000/api/1"});
+    import { init,TYPES } from "./dist/index.js";
+
+    init({ url: "http://127.0.0.1:9000/api/1",max: 2,plugin:['click']});
 
     const scriptError = document.querySelector("#script-error");
     const input = document.querySelector("#my-input");

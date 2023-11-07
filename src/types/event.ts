@@ -1,4 +1,4 @@
-export enum EVENTTYPES {
+export enum TYPES {
   ERROR = 'error',
   CLICK = 'click',
   PERFORMANCE = 'performance',

@@ -1,6 +1,6 @@
 {
   "name": "cwj_monitoring",
-  "version": "0.0.14",
+  "version": "0.0.15",
   "description": "基于 JS 适用Web端的插件，为前端项目提供【 行为、性能、异常 】监控手段",
   "repository": "https://github.com/cwjbjy/cwj_monitoring",
   "main": "dist",
@@ -8,7 +8,7 @@
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "rollup -c",
-    "serve": "rollup -c -w",
+    "server": "rollup -c -w",
     "lint": "eslint src --fix --ext .ts,.js --max-warnings 0"
   },
   "files": [
@@ -50,7 +50,7 @@
     "rimraf": "^5.0.1",
     "rollup": "^3.27.2",
     "rollup-plugin-delete": "^2.0.0",
-    "rollup-plugin-dts": "^6.0.0",
+    "rollup-plugin-dts": "^6.1.0",
     "rollup-plugin-esbuild": "^5.0.0",
     "rollup-plugin-sourcemaps": "^0.6.3",
     "tslib": "^2.6.1",

@@ -21,17 +21,13 @@ export interface Info extends BaseInfo {
   referrer: string;
 }
 
-export interface Monitor {
-  error?: boolean;
-  click?: boolean;
-  performance?: boolean;
-  router?: boolean;
-}
+type Plugin = 'error' | 'click' | 'performance' | 'router';
 
 //初始化时传入的参数
-export interface Options extends Monitor {
+export interface Options {
   url: string;
   max?: number;
   time?: number;
+  plugin?: Plugin[];
   data?: any;
 }

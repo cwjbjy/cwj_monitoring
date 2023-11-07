@@ -3,17 +3,14 @@ import PVPlugin from './plugin/pv';
 import BehaviorPlugin from './plugin/behavior';
 import PerformancePlugin from './plugin/performance';
 import EventTrack from './eventTrack';
-import { isValidKey } from '../utils/index';
-import { EVENTTYPES } from '../types/event';
+import Validator from '../utils/validator';
+import { TYPES } from '../types/event';
 import type { Options } from '../types/index';
 
 export let track: EventTrack;
 
 export default function initBase(options: Options) {
-  if (!options.url) {
-    console.error('@web-tracing: ', '缺少参数url');
-    return;
-  }
+  if (!Validator.validate(options)) return;
 
   track = new EventTrack(options);
   window.$track = track;
@@ -25,27 +22,27 @@ export default function initBase(options: Options) {
 }
 
 //根据参数启动对应的监听功能
+/* 工厂模式 */
 function start(options: Options) {
-  for (const key in options) {
-    if (isValidKey(key, options)) {
-      if (options[key]) {
-        switch (key) {
-          case EVENTTYPES.CLICK:
-            BehaviorPlugin.monitor(); //监听用户行为
-            break;
-          case EVENTTYPES.ERROR:
-            ErrorPlugin.monitor(); //监听错误
-            break;
-          case EVENTTYPES.PERFORMANCE:
-            PerformancePlugin.monitor(); //监听性能
-            break;
-          case EVENTTYPES.ROUTER:
-            PVPlugin.monitor(); //监听路由
-            break;
-          default:
-            break;
-        }
+  const plugins = options.plugin;
+  if (plugins) {
+    plugins.forEach((plugin) => {
+      switch (plugin) {
+        case TYPES.CLICK:
+          BehaviorPlugin.monitor(); //监听用户行为
+          break;
+        case TYPES.ERROR:
+          ErrorPlugin.monitor(); //监听错误
+          break;
+        case TYPES.PERFORMANCE:
+          PerformancePlugin.monitor(); //监听性能
+          break;
+        case TYPES.ROUTER:
+          PVPlugin.monitor(); //监听路由
+          break;
+        default:
+          break;
       }
-    }
+    });
   }
 }

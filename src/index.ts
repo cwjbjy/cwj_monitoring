@@ -1,6 +1,7 @@
 import initBase from './lib';
 import type { Options } from './types/index';
 
+/* 单例模式 */
 const init = (function () {
   let connect = false;
   return function (options: Options) {
@@ -12,5 +13,7 @@ const init = (function () {
 })();
 
 export { init };
+
+export { TYPES } from './types/event';
 
 export default { init };

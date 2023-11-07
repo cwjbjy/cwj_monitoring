@@ -1,16 +1,6 @@
-# monitor
+# 介绍
 
 一个简易的前端监控 SDK DEMO，仅供学习，请勿在生产环境中使用。
-
-## DEMO
-
-克隆项目后，执行命令打开服务器。
-
-```
-npm run server
-```
-
-然后用 vscode 的 `live server` 插件访问 index.html 文件，即可尝试体验监控 SDK 的效果。同时打开开发者工具，点击 network 标签，可以看到上报数据的发送请求。
 
 ## 目前已实现的功能
 
@@ -20,29 +10,31 @@ npm run server
 
 注：目前点击监控只支持button标签触发的点击事件
 
-## 通过 npm 使用
+## 源码涉及的设计模式
+1. 单例模式
+2. 代理模式
+3. 模板方法模式
+4. 工厂方法模式
+5. 责任链模式
 
-安装
+## 安装
 
 ```
 npm i cwj_monitoring
 ```
 
-引入
+## 使用
 
 ```js
-import { init } from 'cwj_monitoring';
+import { init , TYPES} from 'cwj_monitoring';
 
 //使用 init 全局进行初始化
 init({
   url: 'http://localhost:8080', //必传参数，数据上传服务器地址
   max: 10, //可选参数，最大缓存数，即超过缓存数立即上传，默认为5
   time: 60000, //可选参数，最大缓存时间，即超过最大缓存时间立即上传，默认30s
-  error: true, //可选参数，是否监听错误事件，默认关闭
-  click: true, //可选参数，是否监听点击事件，默认关闭
-  performance: true, //可选参数，是否监听性能指标，默认关闭
-  router: true, //可选参数，是否监听路由事件，默认关闭
-  data: {}, //可选参数，例如项目的名称与版本号data:{vs:'0.1.1'}
+  plugin:[TYPES.ERROR,TYPES.CLICK,TYPES.PERFORMANCE,TYPES.ROUTER],//可选参数，错误事件，点击事件，性能指标，路由，传递几个就调用几个
+  data: {}, //可选参数，初始化时外部传入的固定参数，例如项目的名称与版本号data:{vs:'0.1.1'}
 });
 
 //无论vue的全局错误捕获，还是react的错误边界，都可使用window.$track.emit手动上传错误
