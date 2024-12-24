@@ -1,5 +1,6 @@
 import { track } from '../index';
 import DefinePlugin from './definePlugin';
+import { EMIT_RTYPE } from '../../types/event';
 
 class ErrorPlugin extends DefinePlugin {
   constructor() {
@@ -7,55 +8,52 @@ class ErrorPlugin extends DefinePlugin {
   }
 
   monitor(): void {
-    this.JSError(); //js错误
-    this.resourceError(); //资源加载错误
-    this.consoleError(); //手动抛出错误
-    this.promiseError(); //promise错误
+    window.addEventListener('error', syncError); //同步错误（js错误，资源加载错误）
+    window.addEventListener('unhandledrejection', asyncError); //异步错误（promise错误）
+  }
+}
+
+function syncError(e: ErrorEvent) {
+  const { error, target } = e;
+  if (error instanceof Error) {
+    return track.emit(EMIT_RTYPE.ERROR_JS, {
+      message: error.message,
+      stack: error.stack,
+      filename: e.filename,
+    });
   }
 
-  JSError() {
-    window.onerror = (msg, url, line, column, error) => {
-      track.emit('error_js', { msg, url, line, column, error });
-    };
+  if (
+    target instanceof HTMLLinkElement ||
+    target instanceof HTMLScriptElement ||
+    target instanceof HTMLImageElement ||
+    target instanceof HTMLAudioElement ||
+    target instanceof HTMLVideoElement ||
+    target instanceof HTMLIFrameElement
+  ) {
+    const url = (target as HTMLImageElement | HTMLScriptElement).src || (target as HTMLLinkElement).href;
+    return track.emit(EMIT_RTYPE.ERROR_RESOURCE, {
+      message: `Failed to get resource：${url}`,
+      url,
+    });
   }
 
-  resourceError() {
-    window.addEventListener(
-      'error',
-      function (e) {
-        const { target } = e;
-        if (
-          target instanceof HTMLLinkElement ||
-          target instanceof HTMLScriptElement ||
-          target instanceof HTMLImageElement ||
-          target instanceof HTMLAudioElement ||
-          target instanceof HTMLVideoElement ||
-          target instanceof HTMLIFrameElement
-        ) {
-          const url = (target as HTMLImageElement | HTMLScriptElement).src || (target as HTMLLinkElement).href;
-          track.emit('error_resource', url);
-        }
-      },
-      true,
-    );
-  }
+  return track.emit(EMIT_RTYPE.ERROR_JS, {
+    message: e.message,
+    filename: e.filename,
+  });
+}
 
-  consoleError() {
-    const oldError = window.console.error;
-    window.console.error = function (errorMsg, ...restArgs) {
-      track.emit('error_console', errorMsg);
-      oldError.apply(window.console, [errorMsg, ...restArgs]);
-    };
-  }
-
-  promiseError() {
-    window.addEventListener('unhandledrejection', function (e: PromiseRejectionEvent) {
-      if (e.reason instanceof Error) {
-        //reject中通过new Error抛出的错误
-        track.emit('error_promise', e.reason.message);
-      } else {
-        track.emit('error_promise', e.reason);
-      }
+function asyncError(e: PromiseRejectionEvent) {
+  if (e.reason instanceof Error) {
+    //reject中通过new Error抛出的错误
+    track.emit(EMIT_RTYPE.ERROR_PROMISE, {
+      stack: e.reason.stack,
+      message: e.reason.message,
+    });
+  } else {
+    track.emit(EMIT_RTYPE.ERROR_PROMISE, {
+      message: e.reason,
     });
   }
 }

@@ -1,10 +1,12 @@
 import BaseInfo from './baseInfo';
 import { MAX_CACHE_LEN, MAX_WAITING_TIME, UUID } from './constant';
-import { sendData } from '../utils';
+import { sendData, getErrorId } from '../utils';
 import events from './cache';
 import { getDate, getSeconds } from '../utils/date';
 
 import type { Options } from '../types/index';
+
+import { EMIT_RTYPE } from '../types/event';
 
 export default class EventTrack extends BaseInfo {
   private url: string; //上报地址
@@ -25,7 +27,7 @@ export default class EventTrack extends BaseInfo {
   }
 
   //格式化传输数据
-  formatter(type: string, data: any) {
+  formatter(type: EMIT_RTYPE, data: any) {
     const date = Date.now();
     const info = Object.assign(
       {},
@@ -39,8 +41,13 @@ export default class EventTrack extends BaseInfo {
         uuid: localStorage.getItem(UUID), //如果已经有uuid，则用之前的
         duration: getSeconds(date, this.visitTime),
         userData: this.data, //外部传入的参数
+        id: '', //日志id
       },
     );
+    //给错误记录根据内容添加唯一id
+    if ([EMIT_RTYPE.ERROR_JS, EMIT_RTYPE.ERROR_PROMISE].includes(type)) {
+      Object.assign(info, { id: getErrorId(data.message) });
+    }
     this.visitTime = date;
     return info;
   }
@@ -52,9 +59,11 @@ export default class EventTrack extends BaseInfo {
     }
   }
 
-  emit(type: string, data?: any) {
+  emit(type: EMIT_RTYPE, data?: any) {
     const info = this.formatter(type, data);
-    events.add(info);
+    if (!events.cache.filter((o) => o.id).some((o) => o.id === info.id)) {
+      events.add(info);
+    }
     clearTimeout(this.timer);
     // 满足最大记录数,立即发送
     events.getLength() >= this.max

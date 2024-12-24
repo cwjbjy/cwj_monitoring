@@ -1,5 +1,6 @@
 import { track } from '../index';
 import DefinePlugin from './definePlugin';
+import { EMIT_RTYPE } from '../../types/event';
 
 class PVPlugin extends DefinePlugin {
   constructor() {
@@ -12,7 +13,7 @@ class PVPlugin extends DefinePlugin {
 
   Hash() {
     window.addEventListener('hashchange', function () {
-      track.emit('hashchange');
+      track.emit(EMIT_RTYPE.ROUTER_HASH);
     });
   }
 
@@ -24,16 +25,16 @@ class PVPlugin extends DefinePlugin {
       //@ts-ignore
       // eslint-disable-next-line prefer-rest-params
       historyPushState.apply(window.history, arguments);
-      track.emit('historychange');
+      track.emit(EMIT_RTYPE.ROUTER_HISTORY);
     };
     window.history.replaceState = function () {
       //@ts-ignore
       // eslint-disable-next-line prefer-rest-params
       historyReplaceState.apply(window.history, arguments);
-      track.emit('historychange');
+      track.emit(EMIT_RTYPE.ROUTER_HISTORY);
     };
     window.addEventListener('popstate', function () {
-      track.emit('historychange');
+      track.emit(EMIT_RTYPE.ROUTER_HISTORY);
     });
   }
 }

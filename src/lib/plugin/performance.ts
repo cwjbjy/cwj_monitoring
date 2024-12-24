@@ -1,5 +1,6 @@
 import { track } from '../index';
 import DefinePlugin from './definePlugin';
+import { EMIT_RTYPE } from '../../types/event';
 
 class PerformancePlugin extends DefinePlugin {
   constructor() {
@@ -17,9 +18,9 @@ class PerformancePlugin extends DefinePlugin {
     const entryHandler = (list: { getEntries: () => any }) => {
       for (const entry of list.getEntries()) {
         if (entry.name === 'first-paint') {
-          track.emit('performance_fp', entry.startTime);
+          track.emit(EMIT_RTYPE.PERFORMANCE_FP, entry.startTime);
         } else if (entry.name === 'first-contentful-paint') {
-          track.emit('performance_fcp', entry.startTime);
+          track.emit(EMIT_RTYPE.PERFORMANCE_FCP, entry.startTime);
         }
       }
       observer.disconnect();
@@ -37,7 +38,7 @@ class PerformancePlugin extends DefinePlugin {
       }
 
       for (const entry of list.getEntries()) {
-        track.emit('performance_lcp', entry.startTime);
+        track.emit(EMIT_RTYPE.PERFORMANCE_LCP, entry.startTime);
       }
     };
 
@@ -47,13 +48,13 @@ class PerformancePlugin extends DefinePlugin {
 
   dcl() {
     window.addEventListener('DOMContentLoaded', function (e) {
-      track.emit('performance_DOMContentLoaded', e.timeStamp);
+      track.emit(EMIT_RTYPE.PERFORMANCE_DOMCONTENTLOADED, e.timeStamp);
     });
   }
 
   load() {
     window.addEventListener('load', function (e) {
-      track.emit('performance_load', e.timeStamp);
+      track.emit(EMIT_RTYPE.PERFORMANCE_LOAD, e.timeStamp);
     });
   }
 }

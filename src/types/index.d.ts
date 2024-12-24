@@ -14,6 +14,7 @@ export interface BaseInfo {
 
 //传给接口的数据格式
 export interface Info extends BaseInfo {
+  id?: string;
   type: string;
   data: any;
   date: string;

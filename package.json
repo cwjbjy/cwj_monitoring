@@ -1,6 +1,6 @@
 {
   "name": "cwj_monitoring",
-  "version": "0.0.15",
+  "version": "0.0.16",
   "description": "基于 JS 适用Web端的插件，为前端项目提供【 行为、性能、异常 】监控手段",
   "repository": "https://github.com/cwjbjy/cwj_monitoring",
   "main": "dist",
@@ -47,7 +47,6 @@
     "husky": "^8.0.3",
     "lint-staged": "^14.0.1",
     "prettier": "^3.0.3",
-    "rimraf": "^5.0.1",
     "rollup": "^3.27.2",
     "rollup-plugin-delete": "^2.0.0",
     "rollup-plugin-dts": "^6.1.0",

@@ -2,13 +2,15 @@ import { track } from '../index';
 
 import DefinePlugin from './definePlugin';
 
+import { EMIT_RTYPE } from '../../types/event';
+
 class BehaviorPlugin extends DefinePlugin {
   constructor() {
     super('behavior');
   }
 
   monitor(): void {
-    ['click'].forEach(function (eventType) {
+    [EMIT_RTYPE.BEHAVIOR_CLICK].forEach(function (eventType) {
       let timer: NodeJS.Timeout;
       document.addEventListener(
         eventType,
