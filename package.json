@@ -57,6 +57,7 @@
     "typescript": "^5.1.6"
   },
   "dependencies": {
+    "bowser": "^2.11.0",
     "uuid": "^9.0.0"
   },
   "lint-staged": {

@@ -1,6 +1,6 @@
-import BaseInfo from './baseInfo';
+import DeviceInfo from './deviceInfo';
 import { MAX_CACHE_LEN, MAX_WAITING_TIME, UUID } from './constant';
-import { sendData, getErrorId } from '../utils';
+import { sendData } from '../utils';
 import events from './cache';
 import { getDate, getSeconds } from '../utils/date';
 
@@ -8,7 +8,7 @@ import type { Options } from '../types/index';
 
 import { EMIT_RTYPE } from '../types/event';
 
-export default class EventTrack extends BaseInfo {
+export default class EventTrack extends DeviceInfo {
   private url: string; //上报地址
   private max: number; //最大缓存数
   private time: number; //最大缓存时间
@@ -41,13 +41,8 @@ export default class EventTrack extends BaseInfo {
         uuid: localStorage.getItem(UUID), //如果已经有uuid，则用之前的
         duration: getSeconds(date, this.visitTime),
         userData: this.data, //外部传入的参数
-        id: '', //日志id
       },
     );
-    //给错误记录根据内容添加唯一id
-    if ([EMIT_RTYPE.ERROR_JS, EMIT_RTYPE.ERROR_PROMISE].includes(type)) {
-      Object.assign(info, { id: getErrorId(data.message) });
-    }
     this.visitTime = date;
     return info;
   }
@@ -61,10 +56,8 @@ export default class EventTrack extends BaseInfo {
 
   emit(type: EMIT_RTYPE, data?: any) {
     const info = this.formatter(type, data);
-    if (!events.cache.filter((o) => o.id).some((o) => o.id === info.id)) {
-      events.add(info);
-    }
-    clearTimeout(this.timer);
+    events.add(info);
+    this.timer && clearTimeout(this.timer);
     // 满足最大记录数,立即发送
     events.getLength() >= this.max
       ? this.send()

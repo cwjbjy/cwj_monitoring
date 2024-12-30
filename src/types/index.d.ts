@@ -1,10 +1,28 @@
 export interface Device {
-  browser: string; //浏览器名称
-  browser_version: string | undefined; //浏览器版本
-  os: string; //操作系统
-  ratio: number; //浏览器缩放比例
-  width: number; //浏览器宽
-  height: number; //浏览器高
+  /** 浏览器信息 */
+  browser: {
+    name?: string;
+    version?: string;
+  };
+  /** 操作系统 */
+  os: {
+    name?: string;
+    version?: string;
+    versionName?: string;
+  };
+  /** 设备种类 */
+  platform: {
+    type?: string;
+  };
+  /** 浏览器缩放比例 */
+  ratio: number;
+  /** 浏览器宽高 */
+  wh: {
+    /** 浏览器宽 */
+    width: number;
+    /** 浏览器高 */
+    height: number;
+  };
 }
 
 export interface BaseInfo {
@@ -14,7 +32,6 @@ export interface BaseInfo {
 
 //传给接口的数据格式
 export interface Info extends BaseInfo {
-  id?: string;
   type: string;
   data: any;
   date: string;

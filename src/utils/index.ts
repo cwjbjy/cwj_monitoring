@@ -6,7 +6,3 @@ export const sendData = (url: string, data: any) => {
 export function isValidKey(key: string | number | symbol, object: object): key is keyof typeof object {
   return key in object;
 }
-
-export function getErrorId(val: string) {
-  return window.btoa(decodeURIComponent(encodeURIComponent(val)));
-}
