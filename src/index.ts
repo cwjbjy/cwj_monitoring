@@ -1,4 +1,4 @@
-import initBase from './lib';
+import start from './lib';
 import type { Options } from './types/index';
 
 /* 单例模式 */
@@ -6,7 +6,7 @@ const init = (function () {
   let connect = false;
   return function (options: Options) {
     if (!connect) {
-      initBase(options);
+      start(options);
       connect = true;
     }
   };

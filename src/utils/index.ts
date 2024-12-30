@@ -1,8 +1,6 @@
-/* 发送数据 */
-export const sendData = (url: string, data: any) => {
-  navigator.sendBeacon(url, JSON.stringify(data));
-};
+export * from './date';
+export * from './regular';
+export * from './schedule';
 
-export function isValidKey(key: string | number | symbol, object: object): key is keyof typeof object {
-  return key in object;
-}
+export { default as Validator } from './validator';
+export { getBrowserNameVersion } from './device';

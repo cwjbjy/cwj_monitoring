@@ -25,13 +25,10 @@ export interface Device {
   };
 }
 
-export interface BaseInfo {
+//传给接口的数据格式
+export interface Info {
   device: Device;
   uuid: string;
-}
-
-//传给接口的数据格式
-export interface Info extends BaseInfo {
   type: string;
   data: any;
   date: string;
