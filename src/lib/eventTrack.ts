@@ -50,7 +50,7 @@ export default class EventTrack extends DeviceInfo {
 
   send(flush: boolean) {
     if (this.events.length) {
-      console.log('this.events', this.events);
+      // console.log('this.events', this.events);
       // 如果是刷新/卸载直接同步全部发送
       const maxLen = flush ? this.events.length : this.max;
       // 需要发送的事件
@@ -65,7 +65,7 @@ export default class EventTrack extends DeviceInfo {
 
   emit(type: EMIT_RTYPE, data?: any) {
     const info = this.formatter(type, data);
-    console.log('info', info);
+    // console.log('info', info);
     this.events.push(info);
     this.timer && clearTimeout(this.timer);
     // 满足最大记录数,立即发送
