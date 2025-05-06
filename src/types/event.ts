@@ -5,7 +5,7 @@ export enum TYPES {
   ROUTER = 'router',
 }
 
-export enum EMIT_RTYPE {
+export enum EMIT_TYPE {
   ERROR_JS = 'error_js',
   ERROR_PROMISE = 'error_promise',
   ERROR_RESOURCE = 'error_resource',

@@ -1,4 +1,4 @@
-import { EventTrack } from './lib/index';
+import { EventTrack } from './tracker';
 
 declare global {
   interface Window {

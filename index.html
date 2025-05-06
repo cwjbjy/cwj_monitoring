@@ -15,26 +15,26 @@
   </div>
   <!-- 测试es module模块 -->
   <script type="module">
-    import { init,TYPES } from "./dist/index.js";
+    import { init, TYPES } from "./dist/index.js";
 
-    init({ url: "http://127.0.0.1:9000/api/1",max: 2,plugin:['click']});
+    init({ url: "http://127.0.0.1:9000/api/1", max: 2, time: 1000 });
 
     const scriptError = document.querySelector("#script-error");
     const input = document.querySelector("#my-input");
     scriptError.addEventListener("click", () => {
-      // console.error('1233')
-      // new Promise((resolve, reject) => {
-      //   reject(new Error('111'));
-      // });
-      // window.$track.emit('aa','23')
-      // const a = 1;
+      console.error('1233')
+      new Promise((resolve, reject) => {
+        reject(new Error('111'));
+      });
+      window.$track.emit('aa', '23')
+      const a = 1;
 
-      // a = 2;
-      // if(!input.value){
-      //   input.value = 1
-      // }else{
-      //   input.value++
-      // }
+      a = 2;
+      if (!input.value) {
+        input.value = 1
+      } else {
+        input.value++
+      }
     });
   </script>
   <!-- <img src="https://yun.tuia.cn/image/kkk.png" /> -->

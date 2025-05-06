@@ -1,26 +1,28 @@
-import { track } from '../index';
+import Core from '../core';
 import DefinePlugin from './definePlugin';
-import { EMIT_RTYPE } from '../../types/event';
+import { EMIT_TYPE } from '../types/event';
+import { TYPES } from '../types/event';
 
 class PerformancePlugin extends DefinePlugin {
   constructor() {
-    super('performance');
+    super(TYPES.PERFORMANCE);
   }
 
-  monitor(): void {
+  monitor(track: Core): void {
+    this.track = track;
     this.paint(); //第一个像素和内容渲染时间
     this.lcp(); //页面最大内容渲染时间
     this.dcl(); //DOM加载完成时间
     this.load(); //样式表与图片都加载完成时间
   }
 
-  paint() {
+  private paint() {
     const entryHandler = (list: { getEntries: () => any }) => {
       for (const entry of list.getEntries()) {
         if (entry.name === 'first-paint') {
-          track.emit(EMIT_RTYPE.PERFORMANCE_FP, entry.startTime);
+          this.track?.emit(EMIT_TYPE.PERFORMANCE_FP, entry.startTime);
         } else if (entry.name === 'first-contentful-paint') {
-          track.emit(EMIT_RTYPE.PERFORMANCE_FCP, entry.startTime);
+          this.track?.emit(EMIT_TYPE.PERFORMANCE_FCP, entry.startTime);
         }
       }
       observer.disconnect();
@@ -31,14 +33,14 @@ class PerformancePlugin extends DefinePlugin {
     observer.observe({ type: 'paint', buffered: true });
   }
 
-  lcp() {
+  private lcp() {
     const entryHandler = (list: { getEntries: () => any }) => {
       if (observer) {
         observer.disconnect();
       }
 
       for (const entry of list.getEntries()) {
-        track.emit(EMIT_RTYPE.PERFORMANCE_LCP, entry.startTime);
+        this.track?.emit(EMIT_TYPE.PERFORMANCE_LCP, entry.startTime);
       }
     };
 
@@ -46,15 +48,15 @@ class PerformancePlugin extends DefinePlugin {
     observer.observe({ type: 'largest-contentful-paint', buffered: true });
   }
 
-  dcl() {
-    window.addEventListener('DOMContentLoaded', function (e) {
-      track.emit(EMIT_RTYPE.PERFORMANCE_DOMCONTENTLOADED, e.timeStamp);
+  private dcl() {
+    window.addEventListener('DOMContentLoaded', (e) => {
+      this.track?.emit(EMIT_TYPE.PERFORMANCE_DOMCONTENTLOADED, e.timeStamp);
     });
   }
 
-  load() {
-    window.addEventListener('load', function (e) {
-      track.emit(EMIT_RTYPE.PERFORMANCE_LOAD, e.timeStamp);
+  private load() {
+    window.addEventListener('load', (e) => {
+      this.track?.emit(EMIT_TYPE.PERFORMANCE_LOAD, e.timeStamp);
     });
   }
 }

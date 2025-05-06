@@ -1,10 +1,10 @@
 import DeviceInfo from './deviceInfo';
-import { MAX_CACHE_LEN, MAX_WAITING_TIME, UUID } from './constant';
+import { MAX_CACHE_LEN, MAX_WAITING_TIME, UUID } from '../constant';
 import { nextTime, beforeUnload, getDate, getSeconds } from '../utils';
 
 import type { Options, Info } from '../types/index';
 
-import { EMIT_RTYPE } from '../types/event';
+import { EMIT_TYPE } from '../types/event';
 
 export default class EventTrack extends DeviceInfo {
   private url: string; //上报地址
@@ -28,7 +28,7 @@ export default class EventTrack extends DeviceInfo {
   }
 
   //格式化传输数据
-  formatter(type: EMIT_RTYPE, data: any) {
+  private formatter(type: EMIT_TYPE, data: any) {
     const date = Date.now();
     const info = Object.assign(
       {},
@@ -48,7 +48,7 @@ export default class EventTrack extends DeviceInfo {
     return info;
   }
 
-  send(flush: boolean) {
+  private send(flush: boolean) {
     if (this.events.length) {
       // console.log('this.events', this.events);
       // 如果是刷新/卸载直接同步全部发送
@@ -63,7 +63,7 @@ export default class EventTrack extends DeviceInfo {
     }
   }
 
-  emit(type: EMIT_RTYPE, data?: any) {
+  emit(type: EMIT_TYPE, data?: any) {
     const info = this.formatter(type, data);
     // console.log('info', info);
     this.events.push(info);
