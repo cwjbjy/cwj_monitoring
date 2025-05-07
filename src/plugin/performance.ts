@@ -8,15 +8,20 @@ class PerformancePlugin extends DefinePlugin {
     super(TYPES.PERFORMANCE);
   }
 
-  monitor(track: Core): void {
+  install(track: Core): void {
     this.track = track;
-    this.paint(); //第一个像素和内容渲染时间
-    this.lcp(); //页面最大内容渲染时间
-    this.dcl(); //DOM加载完成时间
-    this.load(); //样式表与图片都加载完成时间
+    this.setupPerformanceMonitoring();
   }
 
-  private paint() {
+  private setupPerformanceMonitoring() {
+    this.monitorPaintMetrics(); // FP/FCP
+    this.monitorLCP(); // LCP
+    this.monitorDCL(); // DOMContentLoaded
+    this.monitorLoad(); // Load
+    // this.monitorFPS(); // 帧率监控 // 不建议使用，会影响性能
+  }
+
+  private monitorPaintMetrics() {
     const entryHandler = (list: { getEntries: () => any }) => {
       for (const entry of list.getEntries()) {
         if (entry.name === 'first-paint') {
@@ -33,7 +38,7 @@ class PerformancePlugin extends DefinePlugin {
     observer.observe({ type: 'paint', buffered: true });
   }
 
-  private lcp() {
+  private monitorLCP() {
     const entryHandler = (list: { getEntries: () => any }) => {
       if (observer) {
         observer.disconnect();
@@ -48,17 +53,42 @@ class PerformancePlugin extends DefinePlugin {
     observer.observe({ type: 'largest-contentful-paint', buffered: true });
   }
 
-  private dcl() {
+  private monitorDCL() {
     window.addEventListener('DOMContentLoaded', (e) => {
       this.track?.emit(EMIT_TYPE.PERFORMANCE_DOMCONTENTLOADED, e.timeStamp);
     });
   }
 
-  private load() {
+  private monitorLoad() {
     window.addEventListener('load', (e) => {
       this.track?.emit(EMIT_TYPE.PERFORMANCE_LOAD, e.timeStamp);
     });
   }
+
+  // private monitorFPS() {
+  //   let lastTime = performance.now();
+  //   let frameCount = 0;
+  //   let fps = 0;
+
+  //   const calculateFPS = (now: DOMHighResTimeStamp) => {
+  //     frameCount++;
+
+  //     if (now > lastTime + 1000) {
+  //       fps = Math.round((frameCount * 1000) / (now - lastTime));
+  //       this.track?.emit(EMIT_TYPE.PERFORMANCE_FPS, {
+  //         value: fps,
+  //         timestamp: now,
+  //       });
+
+  //       frameCount = 0;
+  //       lastTime = now;
+  //     }
+
+  //     requestAnimationFrame(calculateFPS);
+  //   };
+
+  //   requestAnimationFrame(calculateFPS);
+  // }
 }
 
 export default new PerformancePlugin();

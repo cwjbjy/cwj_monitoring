@@ -6,18 +6,10 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Document</title>
-</head>
-
-<body>
-  <div class="controls">
-    <button id="script-error" type="button">Generate script error</button>
-    <input id="my-input"></input>
-  </div>
-  <!-- 测试es module模块 -->
   <script type="module">
     import { init, TYPES } from "./dist/index.js";
 
-    init({ url: "http://127.0.0.1:9000/api/1", max: 2, time: 1000 });
+    init({ url: "http://127.0.0.1:9000/api/1", max: 2, time: 1000, plugin: [TYPES.ERROR] });
 
     const scriptError = document.querySelector("#script-error");
     const input = document.querySelector("#my-input");
@@ -26,7 +18,7 @@
       new Promise((resolve, reject) => {
         reject(new Error('111'));
       });
-      window.$track.emit('aa', '23')
+      // window.$track.emit('aa', '23')
       const a = 1;
 
       a = 2;
@@ -37,9 +29,23 @@
       }
     });
   </script>
+</head>
+
+<body>
+  <div class="controls">
+    <button id="script-error" type="button">Generate script error</button>
+    <input id="my-input"></input>
+  </div>
+  <!-- 测试es module模块 -->
+
   <!-- <img src="https://yun.tuia.cn/image/kkk.png" /> -->
   <script>
-
+    setTimeout(() => {
+      const img = document.createElement('img');
+    img.src = 'https://example.com/nonexistent-image.jpg';
+    document.body.appendChild(img);
+    }, 1000);
+  
   </script>
 </body>
 

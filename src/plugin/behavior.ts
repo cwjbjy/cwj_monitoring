@@ -8,17 +8,26 @@ class BehaviorPlugin extends DefinePlugin {
     super(TYPES.CLICK);
   }
 
-  monitor(track: Core): void {
+  install(track: Core): void {
     this.track = track;
     this.setupClickListeners();
   }
 
   private setupClickListeners() {
     const handleClick = (e: Event) => {
-      const target = e.target;
-      if (target instanceof HTMLButtonElement) {
-        this.track?.emit(EMIT_TYPE.BEHAVIOR_CLICK, target.textContent);
-      }
+      const target = e.target as HTMLElement;
+      if (!target) return;
+
+      // 收集点击元素信息
+      const clickData = {
+        tagName: target.tagName,
+        id: target.id,
+        className: target.className,
+        text: target.textContent?.trim(),
+        xPath: this.getElementXPath(target),
+      };
+
+      this.track?.emit(EMIT_TYPE.BEHAVIOR_CLICK, clickData);
     };
 
     const listener = (e: Event) => {
@@ -26,6 +35,19 @@ class BehaviorPlugin extends DefinePlugin {
     };
 
     document.addEventListener(EMIT_TYPE.BEHAVIOR_CLICK, listener, true);
+  }
+
+  // 获取元素的 XPath
+  private getElementXPath(element: HTMLElement): string {
+    if (!element || element.nodeType !== 1) return '';
+    if (element.id) return `//*[@id="${element.id}"]`;
+
+    const sameTagSiblings = Array.from(element.parentNode?.children || []).filter(
+      (el) => el.tagName === element.tagName,
+    );
+
+    const idx = sameTagSiblings.indexOf(element) + 1;
+    return `${this.getElementXPath(element.parentNode as HTMLElement)}/${element.tagName.toLowerCase()}[${idx}]`;
   }
 }
 

@@ -15,9 +15,10 @@ export default class Core extends EventTrack {
     return this; // 方便链式调用
   }
 
+  // 启动插件
   run() {
     this.pluginMap.forEach((plugin) => {
-      plugin.monitor(this);
+      plugin.install(this);
     });
   }
 }

@@ -1,35 +1,51 @@
-# 介绍
+# 🚀 前端监控 SDK DEMO
 
-一个简易的前端监控 SDK DEMO，仅供学习，请勿在生产环境中使用。
+> ⚠️ **注意**：这是一个简易的前端监控 SDK DEMO，仅供学习使用，请勿在生产环境中使用！
 
-## 目前已实现的功能
+## 🌟 功能概览
 
-1. 行为监控：点击监控，页面跳转监控，页面停留时间监控
-2. 错误监控：js错误，资源加载错误，手动console.error抛出的错误，promise未捕获的错误
-3. 性能监控：DCL、FP、FCP、LCP、Load、FPS
+| 功能类别       | 具体功能                                                                 | 状态 |
+|----------------|--------------------------------------------------------------------------|------|
+| **行为监控**   | 🔍 点击监控、🔄 页面跳转监控、⏱️ 页面停留时间监控                         | ✅   |
+| **错误监控**   | ❌ JS错误、🖼️ 资源加载错误、💻 console.error错误、🤞 Promise未捕获错误     | ✅   |
+| **性能监控**   | ⚡ DCL、FP、FCP、LCP、Load、FPS 等性能指标                                | ✅   |
 
-注：目前点击监控只支持button标签触发的点击事件
+## 📦 安装
 
-## 安装
-
+```bash
+npm install cwj_monitoring
 ```
-npm i cwj_monitoring
-```
 
-## 使用
+## 🛠️ 使用指南
+
+1.基础用法
 
 ```js
-import { init , TYPES} from 'cwj_monitoring';
+import { init, TYPES } from 'cwj_monitoring';
 
-//使用 init 全局进行初始化
 init({
-  url: 'http://localhost:8080', //必传参数，数据上传服务器地址
-  max: 10, //可选参数，最大缓存数，即超过缓存数立即上传，默认为5
-  time: 60000, //可选参数，最大缓存时间，即超过最大缓存时间立即上传，默认30s
-  plugin:[TYPES.ERROR,TYPES.CLICK,TYPES.PERFORMANCE,TYPES.ROUTER],//可选参数，错误事件，点击事件，性能指标，路由，传递几个就调用几个;如果不传则默认调用所有
-  data: {}, //可选参数，初始化时外部传入的固定参数，例如项目的名称与版本号data:{vs:'0.1.1'}
+  url: 'http://localhost:8080', // 🔴 必填 - 数据上报地址
+  max: 10,                      // 🔵 可选 - 最大缓存数(默认5)
+  time: 60000,                  // 🔵 可选 - 最大缓存时间(默认30s)
+  plugin: [                     // 🔵 可选 - 要启用的插件，不传plugin则启动所有插件
+    TYPES.ERROR,                // 错误监控
+    TYPES.CLICK,               // 点击监控  
+    TYPES.PERFORMANCE,         // 性能监控
+    TYPES.ROUTER               // 路由监控
+  ],
+  data: {                      // 🔵 可选 - 自定义元数据
+    vs: '0.1.1',               // 版本号
+    env: 'production'          // 环境标识
+  }
 });
-
-//无论vue的全局错误捕获，还是react的错误边界，都可使用window.$track.emit手动上传错误
-window.$track.emit(type, data);
 ```
+2.手动上报错误
+```js
+// 适用于Vue/React等框架的错误捕获
+window.$track.emit('ERROR_TYPE', {
+  message: '自定义错误信息',
+  // 其他错误详情...
+});
+```
+## 🤝 参与贡献
+欢迎提交Issue或PR！🎉

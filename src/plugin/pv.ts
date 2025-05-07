@@ -6,7 +6,7 @@ class PVPlugin extends DefinePlugin {
   constructor() {
     super(TYPES.ROUTER);
   }
-  monitor(track: Core): void {
+  install(track: Core): void {
     this.track = track;
     this.setupHashListener(); //监听hash路由
     this.setupHistoryListener(); //监听history路由
@@ -27,8 +27,6 @@ class PVPlugin extends DefinePlugin {
       this.track?.emit(EMIT_TYPE.ROUTER_HISTORY);
     };
     window.history.replaceState = (...args) => {
-      //@ts-ignore
-      // eslint-disable-next-line prefer-rest-params
       historyReplaceState.apply(window.history, args);
       this.track?.emit(EMIT_TYPE.ROUTER_HISTORY);
     };

@@ -6,9 +6,7 @@ export enum TYPES {
 }
 
 export enum EMIT_TYPE {
-  ERROR_JS = 'error_js',
-  ERROR_PROMISE = 'error_promise',
-  ERROR_RESOURCE = 'error_resource',
+  ERROR = 'error',
   ROUTER_HASH = 'hashchange',
   ROUTER_HISTORY = 'historychange',
   PERFORMANCE_FP = 'performance_fp',
