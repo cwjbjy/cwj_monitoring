@@ -1,7 +1,7 @@
-import Core from './core';
-import { Validator } from './utils';
-import type { Options } from './types/index';
-import type { IPlugin } from './plugin/definePlugin';
+import Core from '.';
+import { Validator } from '../utils';
+import type { Options } from '../types/index';
+import type { IPlugin } from '../plugin/definePlugin';
 export default class Tracker {
   private static instance: Core;
   private static plugins: Map<string, any> = new Map();

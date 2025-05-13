@@ -32,8 +32,6 @@ export interface Info {
   type: string;
   data: any;
   date: string;
-  url: string;
-  referrer: string;
 }
 
 type Plugin = 'error' | 'click' | 'performance' | 'router';

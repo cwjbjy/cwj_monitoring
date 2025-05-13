@@ -1,4 +1,4 @@
-import Tracker from './tracker';
+import Tracker from './core/tracker';
 import type { Options } from './types/index';
 import ErrorPlugin from './plugin/error';
 import PVPlugin from './plugin/pv';

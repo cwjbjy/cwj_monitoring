@@ -7,8 +7,7 @@ export enum TYPES {
 
 export enum EMIT_TYPE {
   ERROR = 'error',
-  ROUTER_HASH = 'hashchange',
-  ROUTER_HISTORY = 'historychange',
+  ROUTE_CHANGE = 'route_change',
   PERFORMANCE_FP = 'performance_fp',
   PERFORMANCE_FCP = 'performance_fcp',
   PERFORMANCE_LCP = 'performance_lcp',
