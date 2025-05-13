@@ -1,5 +1,5 @@
 import DeviceInfo from './deviceInfo';
-import { MAX_CACHE_LEN, MAX_WAITING_TIME, UUID } from '../constant';
+import { MAX_CACHE_LEN, MAX_WAITING_TIME } from '../constant';
 import { nextTime, beforeUnload, getDate, getSeconds } from '../utils';
 
 import type { Options, Info } from '../types/index';
@@ -39,7 +39,6 @@ export default class EventTrack extends DeviceInfo {
         date: getDate(date), //日期
         url: window.location.href, //当前路由
         referrer: document.referrer, //上一次的路由
-        uuid: localStorage.getItem(UUID), //如果已经有uuid，则用之前的
         duration: getSeconds(date, this.visitTime),
         userData: this.data,
       },

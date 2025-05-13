@@ -1,20 +1,21 @@
-import { v4 as uuidv4 } from 'uuid';
-import { UUID } from '../constant';
 import { getBrowserNameVersion } from '../utils';
 import type { Device } from '../types/index';
+import FingerprintJS from '@fingerprintjs/fingerprintjs';
 
 //基本信息
 export default class DeviceInfo {
   device: Device;
-  uuid: string;
+  uuid: string = '';
   constructor() {
     //设备信息
     this.device = getBrowserNameVersion();
-    if (!localStorage.getItem(UUID)) {
-      this.uuid = uuidv4(); //唯一id;
-      localStorage.setItem(UUID, this.uuid); //如果不存在uuid，则进行存储
-    } else {
-      this.uuid = localStorage.getItem(UUID) as string;
-    }
+    this.getUUid();
+  }
+
+  private async getUUid() {
+    const result = await FingerprintJS.load();
+    const visitorId = await result.get();
+    // 生成一个唯一的 UUID
+    this.uuid = visitorId.visitorId;
   }
 }
