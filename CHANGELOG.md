@@ -1,5 +1,11 @@
 # cwj_monitoring
 
+## 0.0.23
+
+### Patch Changes
+
+- 新增vu，改造页面停留时间
+
 ## 0.0.22
 
 ### Patch Changes
