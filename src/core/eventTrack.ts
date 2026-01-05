@@ -7,9 +7,9 @@ import { EMIT_TYPE } from '../types/event';
 
 /**
  * EventTrack 类处理事件收集、批处理和传输
- * 继承 DeviceInfo 以在事件中包含设备信息
  */
-export default class EventTrack extends DeviceInfo {
+export default class EventTrack {
+  private deviceInfo: DeviceInfo;
   private url: string;
   private transportConfig: Required<TransportConfig>;
   private data?: Record<string, any>;
@@ -18,8 +18,7 @@ export default class EventTrack extends DeviceInfo {
   private timer: ReturnType<typeof setTimeout> | null = null;
 
   constructor(options: Options) {
-    super();
-
+    this.deviceInfo = new DeviceInfo();
     this.url = options.url;
     this.data = options.data;
 
@@ -41,8 +40,8 @@ export default class EventTrack extends DeviceInfo {
   private formatter(type: EMIT_TYPE | string, data: any): MonitoringPayload {
     const timestamp = Date.now();
     const payload: MonitoringPayload = {
-      device: this.device,
-      uuid: this.uuid,
+      device: this.deviceInfo.device,
+      uuid: this.deviceInfo.uuid,
       type,
       data,
       date: getDate(timestamp),

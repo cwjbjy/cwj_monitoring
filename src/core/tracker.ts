@@ -1,35 +1,28 @@
 import Core from '.';
 import { Validator } from '../utils';
 import type { Options } from '../types/index';
-import type { IPlugin } from '../plugin/definePlugin';
 export default class Tracker {
   private static instance: Core;
-  private static plugins: Map<string, any> = new Map();
-
-  public static registerPlugin(plugin: IPlugin) {
-    this.plugins.set(plugin.name, plugin);
-  }
 
   public static start(options: Options) {
     if (!Validator.validate(options)) return;
 
     this.instance = new Core(options);
-    window.$track = this.instance;
+
+    // 支持自定义全局变量名称，默认为 $track
+    const globalKey = options.globalKey || '$track';
+    (window as any)[globalKey] = this.instance;
 
     this.loadPlugins(options);
   }
 
-  //根据参数启动对应的监听功能
+  // 根据参数启动对应的监听功能
   private static loadPlugins(options: Options) {
-    const { plugin: pluginNames = [] } = options;
-    // 加载指定插件或全部插件
-    const pluginsToLoad = pluginNames.length > 0 ? pluginNames : Array.from(this.plugins.keys());
+    const { plugin: plugins = [] } = options;
 
-    pluginsToLoad.forEach((pluginName) => {
-      const plugin = this.plugins.get(pluginName);
-      if (plugin) {
-        this.instance.use(plugin);
-      }
+    // 直接加载传入的插件实例
+    plugins.forEach((plugin) => {
+      this.instance.use(plugin);
     });
 
     this.instance.run();

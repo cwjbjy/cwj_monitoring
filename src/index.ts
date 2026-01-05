@@ -1,28 +1,27 @@
 import Tracker from './core/tracker';
 import type { Options } from './types/index';
-import ErrorPlugin from './plugin/error';
-import PVPlugin from './plugin/pv';
-import BehaviorPlugin from './plugin/behavior';
-import PerformancePlugin from './plugin/performance';
-import { TYPES } from './types/event';
 
-// 注册核心插件
-Tracker.registerPlugin(BehaviorPlugin);
-Tracker.registerPlugin(ErrorPlugin);
-Tracker.registerPlugin(PerformancePlugin);
-Tracker.registerPlugin(PVPlugin);
+// 导出核心功能
+export { TYPES } from './types/event';
+export type { Options } from './types/index';
 
-/* 单例模式 */
-const init = (function () {
-  let connect = false;
+// 导出插件供按需引入
+export { default as ErrorPlugin } from './plugin/error';
+export { default as PVPlugin } from './plugin/pv';
+export { default as BehaviorPlugin } from './plugin/behavior';
+export { default as PerformancePlugin } from './plugin/performance';
+
+/**
+ * 初始化监控 SDK
+ */
+export const init = (function () {
+  let isInitialized = false;
   return function (options: Options) {
-    if (!connect) {
+    if (!isInitialized) {
       Tracker.start(options);
-      connect = true;
+      isInitialized = true;
     }
   };
 })();
-
-export { init, TYPES };
 
 export default { init };

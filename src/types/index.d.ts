@@ -77,6 +77,8 @@ export interface TransportConfig {
   maxRetries?: number;
 }
 
+import type { IPlugin } from '../plugin/definePlugin';
+
 /**
  * SDK 初始化配置选项
  */
@@ -89,10 +91,9 @@ export interface Options {
 
   /**
    * 要启用的插件列表
-   * 如果未提供，将激活所有已注册的插件
    * @optional 可选
    */
-  plugin?: PluginType[];
+  plugin?: IPlugin[];
 
   /**
    * 附加到所有事件的自定义用户元数据
@@ -107,4 +108,10 @@ export interface Options {
    * @optional 可选
    */
   transport?: TransportConfig;
+
+  /**
+   * 挂载在 window 上的全局变量名称
+   * @default '$track'
+   */
+  globalKey?: string;
 }
