@@ -65,16 +65,6 @@ export interface TransportConfig {
    * @default 30000（30秒）
    */
   maxWaitTime?: number;
-  /**
-   * 失败时重试请求
-   * @default true
-   */
-  retry?: boolean;
-  /**
-   * 最大重试次数
-   * @default 3
-   */
-  maxRetries?: number;
 }
 
 import type { IPlugin } from '../plugin/definePlugin';

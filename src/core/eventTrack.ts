@@ -1,5 +1,5 @@
 import DeviceInfo from './deviceInfo';
-import { MAX_CACHE_LEN, MAX_WAITING_TIME, MAX_RETRY_ATTEMPTS, INITIAL_RETRY_DELAY } from '../constant';
+import { MAX_CACHE_LEN, MAX_WAITING_TIME } from '../constant';
 import { nextTime, beforeUnload, getDate } from '../utils';
 
 import type { Options, MonitoringPayload, TransportConfig } from '../types/index';
@@ -26,8 +26,6 @@ export default class EventTrack {
     this.transportConfig = {
       maxBatchSize: options.transport?.maxBatchSize ?? MAX_CACHE_LEN,
       maxWaitTime: options.transport?.maxWaitTime ?? MAX_WAITING_TIME,
-      retry: options.transport?.retry ?? true,
-      maxRetries: options.transport?.maxRetries ?? MAX_RETRY_ATTEMPTS,
     };
 
     // 页面卸载前刷新事件
@@ -64,7 +62,7 @@ export default class EventTrack {
       const sendEvents = this.events.slice(0, maxLen);
       this.events = this.events.slice(maxLen);
 
-      await this.sendWithRetry(sendEvents);
+      await this.safeSend(sendEvents);
 
       // 如果还有剩余事件，调度下次发送
       if (this.events.length) {
@@ -74,26 +72,6 @@ export default class EventTrack {
       // 注意：不重新添加到队列以防止无限循环
     } finally {
       this.isSending = false;
-    }
-  }
-
-  /**
-   * 使用指数退避算法重试发送
-   */
-  private async sendWithRetry(events: MonitoringPayload[], attempt = 0): Promise<void> {
-    try {
-      await this.safeSend(events);
-    } catch (error) {
-      if (!this.transportConfig.retry || attempt >= this.transportConfig.maxRetries) {
-        throw error;
-      }
-
-      const delay = INITIAL_RETRY_DELAY * Math.pow(2, attempt);
-
-      //请求挂起
-      await new Promise((resolve) => setTimeout(resolve, delay));
-
-      return this.sendWithRetry(events, attempt + 1);
     }
   }
 

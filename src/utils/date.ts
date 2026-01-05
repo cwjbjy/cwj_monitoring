@@ -1,5 +1,5 @@
 /* 将时间戳转为年月日 */
-export const getDate = (time: number) => {
+export const getDate = (time: number = Date.now()) => {
   const date = new Date(time);
   const year = date.getFullYear();
   const month = date.getMonth() + 1; //获取系统月份，由于月份是从0开始计算，所以要加1

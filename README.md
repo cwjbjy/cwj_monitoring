@@ -72,8 +72,6 @@ init({
 interface TransportConfig {
   maxBatchSize?: number; // 默认：累积 5 个事件后发送
   maxWaitTime?: number; // 默认：30000ms，或 30 秒后发送
-  retry?: boolean; // 默认：true，失败时重试
-  maxRetries?: number; // 默认：3，最大重试次数
 }
 ```
 

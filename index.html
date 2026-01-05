@@ -3,49 +3,126 @@
 
 <head>
   <meta charset="UTF-8" />
-  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Document</title>
-  <script type="module">
-    import { init, TYPES } from "./dist/index.js";
+  <title>CWJ Monitoring SDK Preview</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+    }
 
-    init({ url: "http://127.0.0.1:9000/api/1", max: 2, time: 1000, plugin: [TYPES.ERROR] });
+    .card {
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
 
-    const scriptError = document.querySelector("#script-error");
-    const input = document.querySelector("#my-input");
-    scriptError.addEventListener("click", () => {
-      console.error('1233')
-      new Promise((resolve, reject) => {
-        reject(new Error('111'));
-      });
-      // window.$track.emit('aa', '23')
-      const a = 1;
+    .btn {
+      background: #0070f3;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-right: 8px;
+    }
 
-      a = 2;
-      if (!input.value) {
-        input.value = 1
-      } else {
-        input.value++
-      }
-    });
-  </script>
+    .btn:hover {
+      background: #0051a2;
+    }
+
+    .btn-error {
+      background: #e00;
+    }
+
+    .btn-error:hover {
+      background: #c00;
+    }
+
+    code {
+      background: #f5f5f5;
+      padding: 2px 4px;
+      border-radius: 4px;
+    }
+  </style>
 </head>
 
 <body>
-  <div class="controls">
-    <button id="script-error" type="button">Generate script error</button>
-    <input id="my-input"></input>
-  </div>
-  <!-- 测试es module模块 -->
+  <h1>CWJ Monitoring SDK Preview</h1>
 
-  <!-- <img src="https://yun.tuia.cn/image/kkk.png" /> -->
-  <script>
-    setTimeout(() => {
+  <div class="card">
+    <h2>🚀 SDK Status</h2>
+    <p>Status: <span id="status">Initializing...</span></p>
+    <p>Check the <code>Network</code> tab to see events being sent.</p>
+  </div>
+
+  <div class="card">
+    <h2>❌ Error Tracking</h2>
+    <button class="btn btn-error" id="js-error">Trigger JS Error</button>
+    <button class="btn btn-error" id="promise-error">Trigger Promise Rejection</button>
+    <button class="btn btn-error" id="resource-error">Trigger Resource Error</button>
+  </div>
+
+  <div class="card">
+    <h2>🖱️ Behavior Tracking</h2>
+    <button class="btn" id="click-btn">Track Click</button>
+    <input type="text" placeholder="Type something..." style="padding: 8px;">
+  </div>
+
+  <div class="card">
+    <h2>🛣️ Route Tracking</h2>
+    <button class="btn" onclick="history.pushState({}, '', '/page-a')">Go to Page A</button>
+    <button class="btn" onclick="history.pushState({}, '', '/page-b')">Go to Page B</button>
+  </div>
+
+  <script type="module">
+    import { init, ErrorPlugin, BehaviorPlugin, PerformancePlugin, PVPlugin } from "./dist/index.js";
+
+    try {
+      init({
+        url: "http://127.0.0.1:9000/collect",
+        globalKey: '$monitor',
+        plugin: [
+          ErrorPlugin,
+          BehaviorPlugin,
+          PerformancePlugin,
+          PVPlugin
+        ],
+        data: {
+          env: 'preview',
+          version: '1.0.0'
+        },
+        transport: {
+          maxBatchSize: 5, // Send immediately for preview
+          retry: true
+        }
+      });
+
+      document.getElementById('status').textContent = '✅ Active (Global: window.$monitor)';
+      console.log('SDK Initialized');
+    } catch (e) {
+      document.getElementById('status').textContent = '❌ Failed: ' + e.message;
+      console.error(e);
+    }
+
+    // Error Triggers
+    document.getElementById('js-error').addEventListener('click', () => {
+      throw new Error('Test JS Error ' + Date.now());
+    });
+
+    document.getElementById('promise-error').addEventListener('click', () => {
+      Promise.reject(new Error('Test Promise Rejection ' + Date.now()));
+    });
+
+    document.getElementById('resource-error').addEventListener('click', () => {
       const img = document.createElement('img');
-    img.src = 'https://example.com/nonexistent-image.jpg';
-    document.body.appendChild(img);
-    }, 1000);
-  
+      img.src = 'https://example.com/404.jpg';
+      document.body.appendChild(img);
+      setTimeout(() => img.remove(), 100);
+    });
   </script>
 </body>
 
