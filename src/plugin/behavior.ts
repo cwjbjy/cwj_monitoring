@@ -9,7 +9,7 @@ class BehaviorPlugin extends DefinePlugin {
   }
 
   install(track: Core): void {
-    this.track = track;
+    this.tracker = track;
     this.setupClickListeners();
   }
 
@@ -27,7 +27,7 @@ class BehaviorPlugin extends DefinePlugin {
         xPath: this.getElementXPath(target),
       };
 
-      this.track?.emit(EMIT_TYPE.BEHAVIOR_CLICK, clickData);
+      this.tracker?.emit(EMIT_TYPE.BEHAVIOR_CLICK, clickData);
     };
 
     const listener = (e: Event) => {

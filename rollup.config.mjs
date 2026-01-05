@@ -1,38 +1,87 @@
 import { defineConfig } from 'rollup';
 import esbuild from 'rollup-plugin-esbuild';
 import { dts } from 'rollup-plugin-dts';
-import pkg from './package.json' assert { type: 'json' }; //断言导出json模块
 import json from '@rollup/plugin-json';
 import terser from '@rollup/plugin-terser';
 import resolve from '@rollup/plugin-node-resolve';
 import commonjs from '@rollup/plugin-commonjs';
 import { babel } from '@rollup/plugin-babel';
 import del from 'rollup-plugin-delete';
-// import sourcemaps from "rollup-plugin-sourcemaps";
+
+const plugins = [
+  json(),
+  resolve({
+    browser: true,
+    preferBuiltins: false,
+  }),
+  commonjs(),
+  babel({
+    babelHelpers: 'runtime',
+    exclude: 'node_modules/**',
+    presets: ['@babel/preset-env'],
+    plugins: [['@babel/plugin-transform-runtime', { useESModules: true }]],
+  }),
+  esbuild({
+    target: 'es2020',
+    minify: false,
+  }),
+];
 
 export default defineConfig([
+  // ESM build
   {
-    input: 'src/index.ts', //入口文件
+    input: 'src/index.ts',
     output: {
-      dir: pkg.module, //出口文件
-      format: 'es', //打包成es module模块
-      // sourcemap: true,
+      file: 'dist/index.js',
+      format: 'es',
+      sourcemap: true,
+      exports: 'named',
     },
-    plugins: [
-      del({ targets: 'dist/*' }),
-      json(),
-      terser(),
-      resolve(),
-      commonjs(),
-      babel({
-        babelHelpers: 'runtime',
-        presets: ['@babel/preset-env'],
-        plugins: [['@babel/plugin-transform-runtime', { useESModules: true }]],
-      }),
-      esbuild({ target: 'esnext' }),
-      // sourcemaps(),
-    ],
+    plugins: [del({ targets: 'dist/*' }), ...plugins],
   },
+
+  // CommonJS build
+  {
+    input: 'src/index.ts',
+    output: {
+      file: 'dist/index.cjs',
+      format: 'cjs',
+      sourcemap: true,
+      exports: 'named',
+    },
+    plugins,
+  },
+
+  // Minified ESM build (for CDN)
+  {
+    input: 'src/index.ts',
+    output: {
+      file: 'dist/index.min.js',
+      format: 'es',
+      sourcemap: true,
+      exports: 'named',
+    },
+    plugins: [...plugins, terser()],
+  },
+
+  // UMD build (for browser script tag)
+  {
+    input: 'src/index.ts',
+    output: {
+      file: 'dist/index.umd.js',
+      format: 'umd',
+      name: 'CWJMonitoring',
+      sourcemap: true,
+      exports: 'named',
+      globals: {
+        '@fingerprintjs/fingerprintjs': 'FingerprintJS',
+        bowser: 'Bowser',
+      },
+    },
+    plugins,
+  },
+
+  // Type definitions
   {
     input: 'src/index.ts',
     output: {

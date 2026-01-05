@@ -1,3 +1,6 @@
+/**
+ * SDK 收集的完整设备信息
+ */
 export interface Device {
   /** 浏览器信息 */
   browser: {
@@ -25,22 +28,83 @@ export interface Device {
   };
 }
 
-//传给接口的数据格式
-export interface Info {
+/**
+ * 发送到监控后端的数据格式
+ */
+export interface MonitoringPayload {
+  /** 设备信息 */
   device: Device;
+  /** 唯一访客标识（指纹） */
   uuid: string;
+  /** 事件类型 */
   type: string;
+  /** 事件特定数据 */
   data: any;
+  /** ISO 8601 格式的时间戳 */
   date: string;
+  /** 用户自定义元数据 */
+  userData?: Record<string, any>;
 }
 
-type Plugin = 'error' | 'click' | 'performance' | 'router';
+/**
+ * 插件类型标识
+ */
+export type PluginType = 'error' | 'click' | 'performance' | 'router';
 
-//初始化时传入的参数
+/**
+ * 数据发送和批处理配置
+ */
+export interface TransportConfig {
+  /**
+   * 批量发送前的最大事件数
+   * @default 5
+   */
+  maxBatchSize?: number;
+  /**
+   * 批量发送前的最大等待时间（毫秒）
+   * @default 30000（30秒）
+   */
+  maxWaitTime?: number;
+  /**
+   * 失败时重试请求
+   * @default true
+   */
+  retry?: boolean;
+  /**
+   * 最大重试次数
+   * @default 3
+   */
+  maxRetries?: number;
+}
+
+/**
+ * SDK 初始化配置选项
+ */
 export interface Options {
+  /**
+   * 发送监控数据的后端 URL
+   * @required 必填
+   */
   url: string;
-  max?: number;
-  time?: number;
-  plugin?: Plugin[];
-  data?: any;
+
+  /**
+   * 要启用的插件列表
+   * 如果未提供，将激活所有已注册的插件
+   * @optional 可选
+   */
+  plugin?: PluginType[];
+
+  /**
+   * 附加到所有事件的自定义用户元数据
+   * 用于存储应用版本、环境、用户属性等
+   * @optional 可选
+   * @example { version: '1.2.3', env: 'production', userId: '12345' }
+   */
+  data?: Record<string, any>;
+
+  /**
+   * 传输/批处理配置
+   * @optional 可选
+   */
+  transport?: TransportConfig;
 }

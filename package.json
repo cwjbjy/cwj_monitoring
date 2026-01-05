@@ -1,18 +1,33 @@
 {
   "name": "cwj_monitoring",
-  "version": "0.0.23",
+  "version": "0.0.24",
   "description": "基于 JS 适用Web端的插件，为前端项目提供【 行为、性能、异常 】监控手段",
-  "repository": "https://github.com/cwjbjy/cwj_monitoring",
-  "main": "dist",
-  "module": "dist",
-  "types": "dist/index.d.ts",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/cwjbjy/cwj_monitoring"
+  },
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "sideEffects": false,
   "scripts": {
+    "dev": "rollup -c -w",
     "build": "rollup -c",
-    "server": "rollup -c -w",
+    "type-check": "tsc --noEmit",
+    "lint": "eslint src --fix --ext .ts,.js --max-warnings 0",
+    "format": "prettier --write \"src/**/*.{ts,js,json}\"",
     "changeset": "changeset",
     "version-packages": "changeset version",
     "publish-packages": "changeset publish",
-    "lint": "eslint src --fix --ext .ts,.js --max-warnings 0"
+    "prepublishOnly": "npm run type-check && npm run build"
   },
   "files": [
     "dist/*"

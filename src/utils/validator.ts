@@ -41,8 +41,8 @@ class MaxValidator extends Validator {
   }
 
   validate(data: Options) {
-    if (data.max && !isValidInteger(data.max)) {
-      console.error('max请输入正整数');
+    if (data.transport?.maxBatchSize && !isValidInteger(data.transport.maxBatchSize)) {
+      console.error('maxBatchSize请输入正整数');
       return false;
     } else if (this.nextValidator) {
       return this.nextValidator.validate(data);
@@ -62,8 +62,8 @@ class TimeValidator extends Validator {
   }
 
   validate(data: Options) {
-    if (data.time && !isValidInteger(data.time)) {
-      console.error('time请输入正整数');
+    if (data.transport?.maxWaitTime && !isValidInteger(data.transport.maxWaitTime)) {
+      console.error('maxWaitTime请输入正整数');
       return false;
     } else if (this.nextValidator) {
       return this.nextValidator.validate(data);

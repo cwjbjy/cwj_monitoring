@@ -1,98 +1,188 @@
 import DeviceInfo from './deviceInfo';
-import { MAX_CACHE_LEN, MAX_WAITING_TIME } from '../constant';
+import { MAX_CACHE_LEN, MAX_WAITING_TIME, MAX_RETRY_ATTEMPTS, INITIAL_RETRY_DELAY } from '../constant';
 import { nextTime, beforeUnload, getDate } from '../utils';
 
-import type { Options, Info } from '../types/index';
-
+import type { Options, MonitoringPayload, TransportConfig } from '../types/index';
 import { EMIT_TYPE } from '../types/event';
 
+/**
+ * EventTrack 类处理事件收集、批处理和传输
+ * 继承 DeviceInfo 以在事件中包含设备信息
+ */
 export default class EventTrack extends DeviceInfo {
-  private url: string; //上报地址
-  private max: number; //最大缓存数
-  private time: number; //最大缓存时间
-  private timer: NodeJS.Timeout | null = null; //定时器ID
-  private data: any; //外部传入的参数，可存储项目版本信息
-  private events: Info[] = []; //事件
-  private isSending = false; //是否正在发送
+  private url: string;
+  private transportConfig: Required<TransportConfig>;
+  private data?: Record<string, any>;
+  private events: MonitoringPayload[] = [];
+  private isSending = false;
+  private timer: ReturnType<typeof setTimeout> | null = null;
 
   constructor(options: Options) {
     super();
+
     this.url = options.url;
-    this.max = options.max || MAX_CACHE_LEN;
-    this.time = options.time || MAX_WAITING_TIME;
     this.data = options.data;
+
+    // 合并传输配置和默认值
+    this.transportConfig = {
+      maxBatchSize: options.transport?.maxBatchSize ?? MAX_CACHE_LEN,
+      maxWaitTime: options.transport?.maxWaitTime ?? MAX_WAITING_TIME,
+      retry: options.transport?.retry ?? true,
+      maxRetries: options.transport?.maxRetries ?? MAX_RETRY_ATTEMPTS,
+    };
+
+    // 页面卸载前刷新事件
     beforeUnload(() => this.flush());
   }
 
-  //格式化传输数据
-  private formatter(type: EMIT_TYPE, data: any) {
-    const date = Date.now();
-    const info = Object.assign(
-      {},
-      { device: this.device, uuid: this.uuid },
-      {
-        type, //类型
-        data, //自定义数据
-        date: getDate(date), //日期
-        userData: this.data, //用户自定义数据
-      },
-    );
-    return info;
+  /**
+   * 格式化事件数据用于传输
+   */
+  private formatter(type: EMIT_TYPE | string, data: any): MonitoringPayload {
+    const timestamp = Date.now();
+    const payload: MonitoringPayload = {
+      device: this.device,
+      uuid: this.uuid,
+      type,
+      data,
+      date: getDate(timestamp),
+      userData: this.data,
+    };
+
+    return payload;
   }
 
+  /**
+   * 使用重试逻辑发送事件
+   */
   private async send(flush = false): Promise<void> {
     if (this.isSending || !this.events.length) return;
 
     this.isSending = true;
 
     try {
-      // 如果是刷新/卸载直接同步全部发送
-      const maxLen = flush ? this.events.length : this.max;
-      // 需要发送的事件
+      const maxLen = flush ? this.events.length : this.transportConfig.maxBatchSize;
       const sendEvents = this.events.slice(0, maxLen);
-      // 待发事件
       this.events = this.events.slice(maxLen);
-      await this.safeSend(sendEvents);
-      // 选择下一个待发送的合适时机
-      if (this.events.length) nextTime(() => this.send());
+
+      await this.sendWithRetry(sendEvents);
+
+      // 如果还有剩余事件，调度下次发送
+      if (this.events.length) {
+        nextTime(() => this.send());
+      }
+    } catch (error) {
+      // 注意：不重新添加到队列以防止无限循环
     } finally {
       this.isSending = false;
     }
   }
 
+  /**
+   * 使用指数退避算法重试发送
+   */
+  private async sendWithRetry(events: MonitoringPayload[], attempt = 0): Promise<void> {
+    try {
+      await this.safeSend(events);
+    } catch (error) {
+      if (!this.transportConfig.retry || attempt >= this.transportConfig.maxRetries) {
+        throw error;
+      }
+
+      const delay = INITIAL_RETRY_DELAY * Math.pow(2, attempt);
+
+      //请求挂起
+      await new Promise((resolve) => setTimeout(resolve, delay));
+
+      return this.sendWithRetry(events, attempt + 1);
+    }
+  }
+
+  /**
+   * 立即刷新所有待发送事件
+   */
   private flush(): Promise<void> {
     return this.send(true);
   }
 
-  emit(type: EMIT_TYPE, data?: any) {
+  /**
+   * 公共方法：发送事件
+   */
+  emit(type: EMIT_TYPE | string, data?: any): void {
     const info = this.formatter(type, data);
-    // console.log('info', info);
     this.events.push(info);
-    if (this.timer) {
-      clearTimeout(this.timer);
-      this.timer = null;
+
+    // 达到最大批处理大小时立即发送，否则通过定时器发送
+    if (this.events.length >= this.transportConfig.maxBatchSize) {
+      if (this.timer) {
+        clearTimeout(this.timer);
+        this.timer = null;
+      }
+
+      this.send();
+    } else if (!this.timer) {
+      this.timer = setTimeout(() => {
+        this.timer = null;
+        this.send();
+      }, this.transportConfig.maxWaitTime);
     }
-    // 满足最大记录数,立即发送
-    this.events.length >= this.max
-      ? this.send()
-      : (this.timer = setTimeout(() => {
-          this.send();
-        }, this.time));
   }
 
-  private safeSend(events: Info[]) {
-    if (!events.length) return;
+  /**
+   * 使用 navigator.sendBeacon 或 XMLHttpRequest 安全发送事件
+   */
+  private safeSend(events: MonitoringPayload[]): Promise<void> {
+    return new Promise((resolve, reject) => {
+      if (!events.length) {
+        resolve();
+        return;
+      }
 
-    const data = JSON.stringify(events);
+      const data = JSON.stringify(events);
 
-    // 1.用navigator.sendBeacon
-    if (window.navigator.sendBeacon instanceof Function) {
-      window.navigator.sendBeacon(this.url, data);
-    } else {
-      // 2.XMLHttpRequest兜底
-      const xhr = new XMLHttpRequest();
-      xhr.open('POST', this.url, true);
-      xhr.send(data);
-    }
+      // 优先尝试 sendBeacon（更适合页面卸载）
+      if (typeof navigator.sendBeacon === 'function') {
+        const blob = new Blob([data], { type: 'application/json' });
+        const success = navigator.sendBeacon(this.url, blob);
+
+        if (success) {
+          resolve();
+        } else {
+          this.sendViaXHR(data, resolve, reject);
+        }
+      } else {
+        // 降级到 XMLHttpRequest
+        this.sendViaXHR(data, resolve, reject);
+      }
+    });
+  }
+
+  /**
+   * 通过 XMLHttpRequest 发送
+   */
+  private sendViaXHR(data: string, resolve: () => void, reject: (error: Error) => void): void {
+    const xhr = new XMLHttpRequest();
+
+    xhr.open('POST', this.url, true);
+    xhr.setRequestHeader('Content-Type', 'application/json');
+
+    xhr.onload = () => {
+      if (xhr.status >= 200 && xhr.status < 300) {
+        resolve();
+      } else {
+        reject(new Error(`HTTP ${xhr.status}: ${xhr.statusText}`));
+      }
+    };
+
+    xhr.onerror = () => {
+      reject(new Error('Network error'));
+    };
+
+    xhr.ontimeout = () => {
+      reject(new Error('Request timeout'));
+    };
+
+    xhr.timeout = 10000; // 10秒超时
+    xhr.send(data);
   }
 }

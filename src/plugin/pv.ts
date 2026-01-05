@@ -11,7 +11,7 @@ class PVPlugin extends DefinePlugin {
     super(TYPES.ROUTER);
   }
   install(track: Core): void {
-    this.track = track;
+    this.tracker = track;
     this.pageStartTime = Date.now();
     this.lastRouteTime = this.pageStartTime;
     this.setupHashListener(); //监听hash路由
@@ -21,7 +21,7 @@ class PVPlugin extends DefinePlugin {
   private emitRouteChange(type: string) {
     const now = Date.now();
 
-    this.track?.emit(EMIT_TYPE.ROUTE_CHANGE, {
+    this.tracker?.emit(EMIT_TYPE.ROUTE_CHANGE, {
       from: document.referrer,
       to: window.location.href,
       type,
