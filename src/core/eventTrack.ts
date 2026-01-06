@@ -17,7 +17,7 @@ export default class EventTrack {
   private data?: Record<string, any>;
 
   constructor(options: Options, reporter: Reporter) {
-    this.deviceInfo = new DeviceInfo();
+    this.deviceInfo = new DeviceInfo(options.uuidKey);
     this.reporter = reporter;
     this.data = options.data;
   }

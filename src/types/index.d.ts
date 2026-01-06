@@ -104,4 +104,10 @@ export interface Options {
    * @default '$track'
    */
   globalKey?: string;
+
+  /**
+   * 存储 UUID 的 localStorage key
+   * @default 'track_uuid'
+   */
+  uuidKey?: string;
 }

@@ -57,12 +57,13 @@ monitor.use(ErrorPlugin()).use(PerformancePlugin()).use(XHRPlugin()).use(FetchPl
 
 **配置项：**
 
-| 属性        | 类型                  | 必填 | 默认值   | 描述                         |
-| :---------- | :-------------------- | :--- | :------- | :--------------------------- |
-| `url`       | `string`              | ✅   | -        | 数据收集的后端 URL           |
-| `data`      | `Record<string, any>` | ❌   | `{}`     | 附加到所有事件的自定义元数据 |
-| `transport` | `TransportConfig`     | ❌   | 见下文   | 数据传输设置                 |
-| `globalKey` | `string`              | ❌   | `$track` | 挂载在 window 上的全局变量名 |
+| 属性        | 类型                  | 必填 | 默认值       | 描述                          |
+| :---------- | :-------------------- | :--- | :----------- | :---------------------------- |
+| `url`       | `string`              | ✅   | -            | 数据收集的后端 URL            |
+| `data`      | `Record<string, any>` | ❌   | `{}`         | 附加到所有事件的自定义元数据  |
+| `transport` | `TransportConfig`     | ❌   | 见下文       | 数据传输设置                  |
+| `globalKey` | `string`              | ❌   | `$track`     | 挂载在 window 上的全局变量名  |
+| `uuidKey`   | `string`              | ❌   | `track_uuid` | 存储 UUID 的 localStorage key |
 
 **TransportConfig：**
 
