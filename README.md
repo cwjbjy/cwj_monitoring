@@ -48,7 +48,7 @@ const monitor = new Core({
   },
 });
 
-monitor.use(new ErrorPlugin()).use(new PerformancePlugin()).use(new XHRPlugin()).use(new FetchPlugin()).run();
+monitor.use(ErrorPlugin()).use(PerformancePlugin()).use(XHRPlugin()).use(FetchPlugin()).run();
 ```
 
 ---
@@ -89,7 +89,7 @@ interface TransportConfig {
 
 ### 行为插件 (`BehaviorPlugin`)
 
-监控用户点击交互。支持通过 `filter` 过滤特定元素。
+监控用户点击交互。支持通过 `filter` 过滤特定元素，支持通过 `throttleDelay` 设置点击节流时间（默认 500ms）。
 
 ### 路由插件 (`PVPlugin`)
 
@@ -132,13 +132,15 @@ const monitor = new Core({ url: '...' });
 
 monitor
   .use(
-    new BehaviorPlugin({
+    BehaviorPlugin({
       // 只记录带有 data-track 属性的元素点击
       filter: (el) => el.hasAttribute('data-track'),
+      // 点击节流时间
+      throttleDelay: 300,
     }),
   )
   .use(
-    new XHRPlugin({
+    XHRPlugin({
       // 忽略特定 API 的错误监控
       filter: (method, url) => !url.includes('/ignore-api/'),
     }),

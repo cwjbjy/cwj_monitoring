@@ -1,4 +1,4 @@
-import DefinePlugin, { PluginContext } from './definePlugin';
+import { IPlugin, PluginContext } from './definePlugin';
 import { TYPES, EMIT_TYPE } from '../types/event';
 
 // 扩展 XMLHttpRequest 接口以包含自定义属性
@@ -18,26 +18,21 @@ export interface XHROptions {
   filter?: (method: string, url: string) => boolean;
 }
 
-export class XHRPlugin extends DefinePlugin {
-  private options: XHROptions;
+/**
+ * XHR 监控插件
+ * 监控 XMLHttpRequest 请求，记录失败的请求（状态码非 2xx）
+ */
+export const XHRPlugin = (options: XHROptions = {}): IPlugin => {
+  let context: PluginContext;
+  let originOpen: typeof XMLHttpRequest.prototype.open;
+  let originSend: typeof XMLHttpRequest.prototype.send;
 
-  constructor(options: XHROptions = {}) {
-    super(TYPES.XHR);
-    this.options = options;
-  }
-
-  install(context: PluginContext): void {
-    this.context = context;
-    this.setupXHRListeners();
-  }
-
-  setupXHRListeners(): void {
+  const setupXHRListeners = () => {
     const originXhr = window.XMLHttpRequest;
     if (!originXhr) return;
 
-    const originOpen = originXhr.prototype.open;
-    const originSend = originXhr.prototype.send;
-    const self = this;
+    originOpen = originXhr.prototype.open;
+    originSend = originXhr.prototype.send;
 
     // 重写 open 方法
     originXhr.prototype.open = function <T extends OpenArgs>(this: CustomXMLHttpRequest, ...args: T) {
@@ -58,7 +53,7 @@ export class XHRPlugin extends DefinePlugin {
       const onLoadend = () => {
         if (this._xhr_info) {
           // 防止死循环：忽略发送到监控后台的请求
-          const trackerUrl = self.context?.url;
+          const trackerUrl = context?.url;
           const { url, method, startTime } = this._xhr_info;
 
           if (trackerUrl && url.includes(trackerUrl)) {
@@ -66,7 +61,7 @@ export class XHRPlugin extends DefinePlugin {
           }
 
           // 如果配置了过滤函数且返回 false，则不记录
-          if (self.options.filter && !self.options.filter(method, url)) {
+          if (options.filter && !options.filter(method, url)) {
             return;
           }
 
@@ -84,7 +79,7 @@ export class XHRPlugin extends DefinePlugin {
               response: this.response ? String(this.response).slice(0, 200) : '',
             };
 
-            self.context?.emit(EMIT_TYPE.XHR, data);
+            context?.emit(EMIT_TYPE.XHR, data);
           }
         }
       };
@@ -92,5 +87,23 @@ export class XHRPlugin extends DefinePlugin {
       this.addEventListener('loadend', onLoadend);
       return originSend.apply(this, args);
     };
-  }
-}
+  };
+
+  const restoreXHR = () => {
+    const originXhr = window.XMLHttpRequest;
+    if (!originXhr) return;
+    if (originOpen) originXhr.prototype.open = originOpen;
+    if (originSend) originXhr.prototype.send = originSend;
+  };
+
+  return {
+    name: TYPES.XHR,
+    install: (ctx: PluginContext) => {
+      context = ctx;
+      setupXHRListeners();
+    },
+    uninstall: () => {
+      restoreXHR();
+    },
+  };
+};

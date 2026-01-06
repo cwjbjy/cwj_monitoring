@@ -1,4 +1,4 @@
-import DefinePlugin, { PluginContext } from './definePlugin';
+import { IPlugin, PluginContext } from './definePlugin';
 import { EMIT_TYPE, TYPES } from '../types/event';
 
 export interface ErrorOptions {
@@ -10,37 +10,19 @@ export interface ErrorOptions {
  * 错误监控插件
  * 监控并捕获 JavaScript 错误、资源加载错误、Promise 拒绝以及 console.error 调用
  */
-export class ErrorPlugin extends DefinePlugin {
-  private originalConsoleError?: (...data: any[]) => void;
-  private options: ErrorOptions;
-
-  constructor(options: ErrorOptions = {}) {
-    super(TYPES.ERROR);
-    this.options = options;
-  }
-
-  /**
-   * 安装错误监控插件
-   */
-  install(context: PluginContext): void {
-    this.context = context;
-
-    // 如果启用，重写 console.error
-    this.overrideConsoleError();
-
-    // 设置错误监听器
-    this.setupErrorListeners();
-  }
+export const ErrorPlugin = (options: ErrorOptions = {}): IPlugin => {
+  let originalConsoleError: (...data: any[]) => void;
+  let context: PluginContext;
 
   /**
    * 重写 console.error 以捕获错误日志
    */
-  private overrideConsoleError(): void {
-    this.originalConsoleError = console.error;
+  const overrideConsoleError = () => {
+    originalConsoleError = console.error;
 
     console.error = (...args: any[]) => {
       // 调用原始的 console.error
-      this.originalConsoleError?.apply(console, args);
+      originalConsoleError?.apply(console, args);
 
       // 捕获错误信息
       const errorData = {
@@ -50,159 +32,36 @@ export class ErrorPlugin extends DefinePlugin {
       };
 
       // 如果配置了过滤函数且返回 false，则不记录
-      if (this.options.filter && !this.options.filter(errorData)) {
+      if (options.filter && !options.filter(errorData)) {
         return;
       }
 
-      this.context?.emit(EMIT_TYPE.ERROR, errorData);
+      context?.emit(EMIT_TYPE.ERROR, errorData);
     };
-  }
+  };
 
   /**
-   * 设置全局错误监听器
+   * 恢复 console.error
    */
-  private setupErrorListeners(): void {
-    // 同步错误（JS 错误、资源加载错误）
-    const errorHandler = (e: ErrorEvent) => {
-      this.handleSyncError(e);
-    };
-    window.addEventListener('error', errorHandler, true);
-
-    // 异步错误（Promise 拒绝）
-    const rejectionHandler = (e: PromiseRejectionEvent) => {
-      this.handleAsyncError(e);
-    };
-    window.addEventListener('unhandledrejection', rejectionHandler, true);
-  }
-
-  /**
-   * 处理同步错误
-   */
-  private handleSyncError(e: ErrorEvent): void {
-    const errorData = {
-      type: 'sync',
-      ...this.getErrorDetails(e),
-    };
-
-    // 如果配置了过滤函数且返回 false，则不记录
-    if (this.options.filter && !this.options.filter(errorData)) {
-      return;
+  const restoreConsoleError = () => {
+    if (originalConsoleError) {
+      console.error = originalConsoleError;
     }
-
-    this.context?.emit(EMIT_TYPE.ERROR, errorData);
-  }
-
-  /**
-   * 处理异步错误（Promise 拒绝）
-   */
-  private handleAsyncError(e: PromiseRejectionEvent): void {
-    const errorData = {
-      type: 'async',
-      ...this.getPromiseErrorDetails(e),
-    };
-
-    // 如果配置了过滤函数且返回 false，则不记录
-    if (this.options.filter && !this.options.filter(errorData)) {
-      return;
-    }
-
-    this.context?.emit(EMIT_TYPE.ERROR, errorData);
-  }
-
-  /**
-   * 从 Promise 拒绝中提取错误详情
-   */
-  private getPromiseErrorDetails(e: PromiseRejectionEvent) {
-    // reject 中通过 throw 抛出的错误
-    if (e.reason instanceof Error) {
-      return {
-        errorType: 'promise',
-        message: e.reason.message,
-        stack: this.cleanStack(e.reason.stack),
-        name: e.reason.name,
-        fingerprint: this.generateFingerprint(e.reason.message, e.reason.stack),
-      };
-    }
-
-    // 使用字符串或其他值拒绝
-    return {
-      errorType: 'promise',
-      message: String(e.reason),
-    };
-  }
-
-  /**
-   * 从 ErrorEvent 中提取错误详情
-   */
-  private getErrorDetails(e: ErrorEvent) {
-    const { error, target, filename, message } = e;
-
-    // JavaScript 错误
-    if (error instanceof Error) {
-      return {
-        errorType: 'js',
-        name: error.name,
-        message: error.message,
-        stack: this.cleanStack(error.stack),
-        filename,
-        colno: e.colno,
-        lineno: e.lineno,
-        fingerprint: this.generateFingerprint(error.message, error.stack),
-      };
-    }
-
-    // 资源加载错误
-    if (this.isResourceError(target)) {
-      const element = target as HTMLImageElement | HTMLScriptElement | HTMLLinkElement;
-      const url = 'src' in element ? element.src : element.href;
-
-      return {
-        errorType: 'resource',
-        message: `Resource load failed: ${url}`,
-        url,
-        tagName: element.tagName,
-        fingerprint: this.generateFingerprint(`resource:${url}`),
-      };
-    }
-
-    // 未知错误类型
-    return {
-      errorType: 'unknown',
-      message,
-      filename,
-    };
-  }
-
-  /**
-   * 检查错误是否为资源加载错误
-   */
-  private isResourceError(target: any): boolean {
-    const resourceTags = ['LINK', 'SCRIPT', 'IMG', 'AUDIO', 'VIDEO', 'IFRAME'];
-    return target && resourceTags.includes(target.tagName);
-  }
+  };
 
   /**
    * 清理并限制堆栈追踪深度
    */
-  private cleanStack(stack?: string): string | undefined {
+  const cleanStack = (stack?: string): string | undefined => {
     if (!stack) return undefined;
-
     const lines = stack.split('\n').slice(0, 11);
     return lines.join('\n');
-  }
-
-  /**
-   * 生成错误指纹以对相似错误进行分组
-   */
-  private generateFingerprint(...parts: (string | undefined)[]): string {
-    const combined = parts.filter(Boolean).join('|');
-    return this.simpleHash(combined);
-  }
+  };
 
   /**
    * 用于生成指纹的简单哈希函数
    */
-  private simpleHash(str: string): string {
+  const simpleHash = (str: string): string => {
     let hash = 0;
     for (let i = 0; i < str.length; i++) {
       const char = str.charCodeAt(i);
@@ -210,5 +69,102 @@ export class ErrorPlugin extends DefinePlugin {
       hash = hash & hash; // 转换为 32 位整数
     }
     return Math.abs(hash).toString(36);
-  }
-}
+  };
+
+  /**
+   * 生成错误指纹以对相似错误进行分组
+   */
+  const generateFingerprint = (...parts: (string | undefined)[]): string => {
+    const combined = parts.filter(Boolean).join('|');
+    return simpleHash(combined);
+  };
+
+  /**
+   * 检查错误是否为资源加载错误
+   */
+  const isResourceError = (target: any): boolean => {
+    const resourceTags = ['LINK', 'SCRIPT', 'IMG', 'AUDIO', 'VIDEO', 'IFRAME'];
+    return target && resourceTags.includes(target.tagName);
+  };
+
+  /**
+   * 从 Promise 拒绝中提取错误详情
+   */
+  const getPromiseErrorDetails = (e: PromiseRejectionEvent) => {
+    if (e.reason instanceof Error) {
+      return {
+        errorType: 'promise',
+        message: e.reason.message,
+        stack: cleanStack(e.reason.stack),
+        name: e.reason.name,
+        fingerprint: generateFingerprint(e.reason.message, e.reason.stack),
+      };
+    }
+    return {
+      errorType: 'promise',
+      message: String(e.reason),
+    };
+  };
+
+  /**
+   * 从 ErrorEvent 中提取错误详情
+   */
+  const getErrorDetails = (e: ErrorEvent) => {
+    const { error, target, filename, message } = e;
+    if (error instanceof Error) {
+      return {
+        errorType: 'js',
+        name: error.name,
+        message: error.message,
+        stack: cleanStack(error.stack),
+        filename,
+        colno: e.colno,
+        lineno: e.lineno,
+        fingerprint: generateFingerprint(error.message, error.stack),
+      };
+    }
+    if (isResourceError(target)) {
+      const element = target as HTMLImageElement | HTMLScriptElement | HTMLLinkElement;
+      const url = 'src' in element ? element.src : element.href;
+      return {
+        errorType: 'resource',
+        message: `Resource load failed: ${url}`,
+        url,
+        tagName: element.tagName,
+        fingerprint: generateFingerprint(`resource:${url}`),
+      };
+    }
+    return {
+      errorType: 'unknown',
+      message,
+      filename,
+    };
+  };
+
+  const errorHandler = (e: ErrorEvent) => {
+    const errorData = { type: 'sync', ...getErrorDetails(e) };
+    if (options.filter && !options.filter(errorData)) return;
+    context?.emit(EMIT_TYPE.ERROR, errorData);
+  };
+
+  const rejectionHandler = (e: PromiseRejectionEvent) => {
+    const errorData = { type: 'async', ...getPromiseErrorDetails(e) };
+    if (options.filter && !options.filter(errorData)) return;
+    context?.emit(EMIT_TYPE.ERROR, errorData);
+  };
+
+  return {
+    name: TYPES.ERROR,
+    install: (ctx: PluginContext) => {
+      context = ctx;
+      overrideConsoleError();
+      window.addEventListener('error', errorHandler, true);
+      window.addEventListener('unhandledrejection', rejectionHandler, true);
+    },
+    uninstall: () => {
+      restoreConsoleError();
+      window.removeEventListener('error', errorHandler, true);
+      window.removeEventListener('unhandledrejection', rejectionHandler, true);
+    },
+  };
+};

@@ -108,14 +108,14 @@
 
       // 演示配置化：BehaviorPlugin 只记录带有 data-track 属性的点击或普通按钮
       monitor
-        .use(new ErrorPlugin())
-        .use(new PVPlugin())
-        .use(new BehaviorPlugin({
+        .use(ErrorPlugin())
+        .use(PVPlugin())
+        .use(BehaviorPlugin({
           filter: (el) => el.id !== 'ignore-btn'
         }))
-        .use(new PerformancePlugin())
-        .use(new XHRPlugin())
-        .use(new FetchPlugin())
+        .use(PerformancePlugin())
+        .use(XHRPlugin())
+        .use(FetchPlugin())
         .run();
 
       document.getElementById('status').textContent = '✅ Active';

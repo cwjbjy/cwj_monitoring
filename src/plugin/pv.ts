@@ -1,6 +1,5 @@
-import DefinePlugin, { PluginContext } from './definePlugin';
-import { EMIT_TYPE } from '../types/event';
-import { TYPES } from '../types/event';
+import { IPlugin, PluginContext } from './definePlugin';
+import { EMIT_TYPE, TYPES } from '../types/event';
 import { getSeconds } from '../utils';
 
 export interface PVOptions {
@@ -8,64 +7,69 @@ export interface PVOptions {
   filter?: (to: string, from: string) => boolean;
 }
 
-export class PVPlugin extends DefinePlugin {
-  private lastRouteTime: number = 0;
-  private options: PVOptions;
+export const PVPlugin = (options: PVOptions = {}): IPlugin => {
+  let lastRouteTime: number = Date.now();
+  let context: PluginContext;
 
-  constructor(options: PVOptions = {}) {
-    super(TYPES.ROUTER);
-    this.options = options;
-  }
-  install(context: PluginContext): void {
-    this.context = context;
-    this.lastRouteTime = Date.now();
-    this.setupHashListener(); //监听hash路由
-    this.setupHistoryListener(); //监听history路由
-    this.setupBrowserListene(); //监听浏览器前进与后退
-  }
+  let originPushState: typeof window.history.pushState;
+  let originReplaceState: typeof window.history.replaceState;
 
-  private emitRouteChange(type: string) {
+  const emitRouteChange = (type: string) => {
     const now = Date.now();
     const to = window.location.href;
     const from = document.referrer;
 
     // 如果配置了过滤函数且返回 false，则不记录
-    if (this.options.filter && !this.options.filter(to, from)) {
+    if (options.filter && !options.filter(to, from)) {
       return;
     }
 
-    this.context?.emit(EMIT_TYPE.ROUTE_CHANGE, {
+    context?.emit(EMIT_TYPE.ROUTE_CHANGE, {
       from,
       to,
       type,
-      duration: getSeconds(now, this.lastRouteTime),
+      duration: getSeconds(now, lastRouteTime),
     });
 
-    this.lastRouteTime = now;
-  }
+    lastRouteTime = now;
+  };
 
-  private setupHashListener() {
-    window.addEventListener('hashchange', () => {
-      this.emitRouteChange('hashchange');
-    });
-  }
+  const handleHashChange = () => emitRouteChange('hashchange');
+  const handlePopState = () => emitRouteChange('popstate');
 
-  private setupBrowserListene() {
-    window.addEventListener('popstate', () => {
-      this.emitRouteChange('popstate');
-    });
-  }
+  const setupHistoryListener = () => {
+    originPushState = window.history.pushState;
+    originReplaceState = window.history.replaceState;
 
-  private setupHistoryListener() {
-    const historyPushState = window.history.pushState;
-    const historyReplaceState = window.history.replaceState;
     window.history.pushState = (...args) => {
-      historyPushState.apply(window.history, args);
-      this.emitRouteChange('pushState');
+      originPushState.apply(window.history, args);
+      emitRouteChange('pushState');
     };
+
     window.history.replaceState = (...args) => {
-      historyReplaceState.apply(window.history, args);
-      this.emitRouteChange('replaceState');
+      originReplaceState.apply(window.history, args);
+      emitRouteChange('replaceState');
     };
-  }
-}
+  };
+
+  const restoreHistoryListener = () => {
+    if (originPushState) window.history.pushState = originPushState;
+    if (originReplaceState) window.history.replaceState = originReplaceState;
+  };
+
+  return {
+    name: TYPES.ROUTER,
+    install: (ctx: PluginContext) => {
+      context = ctx;
+      lastRouteTime = Date.now();
+      window.addEventListener('hashchange', handleHashChange);
+      window.addEventListener('popstate', handlePopState);
+      setupHistoryListener();
+    },
+    uninstall: () => {
+      window.removeEventListener('hashchange', handleHashChange);
+      window.removeEventListener('popstate', handlePopState);
+      restoreHistoryListener();
+    },
+  };
+};

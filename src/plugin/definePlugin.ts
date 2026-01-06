@@ -18,7 +18,6 @@ export interface PluginContext {
 export interface IPlugin {
   /**
    * 唯一的插件标识符
-   * 应与配置中的插件类型匹配
    */
   readonly name: string;
 
@@ -29,38 +28,10 @@ export interface IPlugin {
    * @param context - 插件执行上下文
    */
   install(context: PluginContext): void;
-}
-
-/**
- * 创建插件的抽象基类
- * 提供通用功能并强制执行插件契约
- */
-export default abstract class DefinePlugin implements IPlugin {
-  /**
-   * 插件标识符
-   */
-  public readonly name: string;
 
   /**
-   * 插件上下文引用
-   * 安装后可用
+   * 插件卸载函数（可选）
+   * 用于清理监听器等
    */
-  protected context?: PluginContext;
-
-  /**
-   * 创建新的插件实例
-   *
-   * @param name - 唯一的插件标识符
-   */
-  constructor(name: string) {
-    this.name = name;
-  }
-
-  /**
-   * 插件安装逻辑
-   * 必须由子类实现
-   *
-   * @param context - 插件执行上下文
-   */
-  abstract install(context: PluginContext): void;
+  uninstall?(): void;
 }

@@ -1,4 +1,4 @@
-import DefinePlugin, { PluginContext } from './definePlugin';
+import { IPlugin, PluginContext } from './definePlugin';
 import { TYPES, EMIT_TYPE } from '../types/event';
 
 export interface FetchOptions {
@@ -6,24 +6,18 @@ export interface FetchOptions {
   filter?: (method: string, url: string) => boolean;
 }
 
-export class FetchPlugin extends DefinePlugin {
-  private options: FetchOptions;
+/**
+ * Fetch 监控插件
+ * 监控 fetch 请求，记录失败的请求（状态码非 2xx 或网络错误）
+ */
+export const FetchPlugin = (options: FetchOptions = {}): IPlugin => {
+  let context: PluginContext;
+  let originFetch: typeof window.fetch;
 
-  constructor(options: FetchOptions = {}) {
-    super(TYPES.FETCH);
-    this.options = options;
-  }
-
-  install(context: PluginContext): void {
-    this.context = context;
-    this.setupFetchListeners();
-  }
-
-  setupFetchListeners(): void {
-    const originFetch = window.fetch;
+  const setupFetchListeners = () => {
+    originFetch = window.fetch;
     if (!originFetch) return;
 
-    const self = this;
     window.fetch = function (input: RequestInfo | URL, init?: RequestInit) {
       const startTime = Date.now();
       const method = (init?.method || 'GET').toUpperCase();
@@ -31,13 +25,13 @@ export class FetchPlugin extends DefinePlugin {
 
       return originFetch.apply(this, [input, init]).then(
         (response) => {
-          const trackerUrl = self.context?.url;
+          const trackerUrl = context?.url;
           if (trackerUrl && url.includes(trackerUrl)) {
             return response;
           }
 
           // 如果配置了过滤函数且返回 false，则不记录
-          if (self.options.filter && !self.options.filter(method, url)) {
+          if (options.filter && !options.filter(method, url)) {
             return response;
           }
 
@@ -50,18 +44,18 @@ export class FetchPlugin extends DefinePlugin {
               duration,
               success: false,
             };
-            self.context?.emit(EMIT_TYPE.FETCH, data);
+            context?.emit(EMIT_TYPE.FETCH, data);
           }
           return response;
         },
         (error) => {
-          const trackerUrl = self.context?.url;
+          const trackerUrl = context?.url;
           if (trackerUrl && url.includes(trackerUrl)) {
             throw error;
           }
 
           // 如果配置了过滤函数且返回 false，则不记录
-          if (self.options.filter && !self.options.filter(method, url)) {
+          if (options.filter && !options.filter(method, url)) {
             throw error;
           }
 
@@ -74,10 +68,25 @@ export class FetchPlugin extends DefinePlugin {
             success: false,
             message: error.message,
           };
-          self.context?.emit(EMIT_TYPE.FETCH, data);
+          context?.emit(EMIT_TYPE.FETCH, data);
           throw error;
         },
       );
     };
-  }
-}
+  };
+
+  const restoreFetch = () => {
+    if (originFetch) window.fetch = originFetch;
+  };
+
+  return {
+    name: TYPES.FETCH,
+    install: (ctx: PluginContext) => {
+      context = ctx;
+      setupFetchListeners();
+    },
+    uninstall: () => {
+      restoreFetch();
+    },
+  };
+};

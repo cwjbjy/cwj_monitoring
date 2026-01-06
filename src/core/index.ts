@@ -26,4 +26,12 @@ export default class Core extends EventTrack {
       plugin.install(context);
     });
   }
+
+  // 停止并卸载所有插件
+  stop() {
+    this.pluginMap.forEach((plugin) => {
+      plugin.uninstall?.();
+    });
+    this.pluginMap.clear();
+  }
 }
