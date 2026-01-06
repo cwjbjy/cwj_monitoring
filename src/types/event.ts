@@ -27,17 +27,8 @@ export enum EMIT_TYPE {
   PERFORMANCE_FP = 'performance_fp',
   PERFORMANCE_FCP = 'performance_fcp',
   PERFORMANCE_LCP = 'performance_lcp',
-  PERFORMANCE_CLS = 'performance_cls',
-  PERFORMANCE_FID = 'performance_fid',
   PERFORMANCE_INP = 'performance_inp',
-  PERFORMANCE_TTFB = 'performance_ttfb',
-
-  // 性能事件 - 页面加载
-  PERFORMANCE_DOMCONTENTLOADED = 'performance_DOMContentLoaded',
-  PERFORMANCE_LOAD = 'performance_load',
-
-  // 性能事件 - 可选
-  PERFORMANCE_FPS = 'performance_fps',
+  PERFORMANCE_LONGTASK = 'performance_longtask',
 
   // XHR 事件
   XHR = 'xhr',

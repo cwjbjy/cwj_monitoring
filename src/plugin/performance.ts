@@ -10,6 +10,10 @@ export const PerformancePlugin = (options: PerformanceOptions = {}): IPlugin => 
   let context: PluginContext;
   let paintObserver: PerformanceObserver | null = null;
   let lcpObserver: PerformanceObserver | null = null;
+  let inpObserver: PerformanceObserver | null = null;
+  let longTaskObserver: PerformanceObserver | null = null;
+  // 存储交互事件的 Map: interactionId -> { entry, timeoutId }
+  const interactionMap = new Map<number, { entry: any; timeoutId: any }>();
 
   const monitorPaintMetrics = () => {
     const entryHandler = (list: { getEntries: () => any }) => {
@@ -29,8 +33,12 @@ export const PerformancePlugin = (options: PerformanceOptions = {}): IPlugin => 
       paintObserver?.disconnect();
     };
 
-    paintObserver = new PerformanceObserver(entryHandler);
-    paintObserver.observe({ type: 'paint', buffered: true });
+    try {
+      paintObserver = new PerformanceObserver(entryHandler);
+      paintObserver.observe({ type: 'paint', buffered: true });
+    } catch (e) {
+      console.warn('[CWJ Monitor] Paint observation not supported:', e);
+    }
   };
 
   const monitorLCP = () => {
@@ -47,22 +55,82 @@ export const PerformancePlugin = (options: PerformanceOptions = {}): IPlugin => 
       }
     };
 
-    lcpObserver = new PerformanceObserver(entryHandler);
-    lcpObserver.observe({ type: 'largest-contentful-paint', buffered: true });
+    try {
+      lcpObserver = new PerformanceObserver(entryHandler);
+      lcpObserver.observe({ type: 'largest-contentful-paint', buffered: true });
+    } catch (e) {
+      console.warn('[CWJ Monitor] LCP observation not supported:', e);
+    }
   };
 
-  const handleDCL = (e: Event) => {
-    if (options.filter && !options.filter(EMIT_TYPE.PERFORMANCE_DOMCONTENTLOADED, e.timeStamp)) {
-      return;
+  const monitorINP = () => {
+    const entryHandler = (list: { getEntries: () => any }) => {
+      for (const entry of list.getEntries()) {
+        // 仅处理有 interactionId 的交互事件
+        if (!entry.interactionId) continue;
+
+        // 获取该 interactionId 已有的记录
+        const existing = interactionMap.get(entry.interactionId);
+        if (existing) {
+          clearTimeout(existing.timeoutId);
+        }
+
+        // 取耗时最长的事件作为该次交互的代表
+        const maxEntry = existing && existing.entry.duration > entry.duration ? existing.entry : entry;
+
+        // 防抖：200ms 内无新事件则上报
+        const timeoutId = setTimeout(() => {
+          interactionMap.delete(maxEntry.interactionId);
+
+          if (options.filter && !options.filter(EMIT_TYPE.PERFORMANCE_INP, maxEntry)) {
+            return;
+          }
+
+          context?.emit(EMIT_TYPE.PERFORMANCE_INP, {
+            value: maxEntry.duration,
+            startTime: maxEntry.startTime,
+            name: maxEntry.name,
+            interactionId: maxEntry.interactionId,
+          });
+        }, 200);
+
+        interactionMap.set(entry.interactionId, { entry: maxEntry, timeoutId });
+      }
+    };
+
+    // 观察 'event' 类型，durationThreshold 默认为 40ms
+    try {
+      inpObserver = new PerformanceObserver(entryHandler);
+      inpObserver.observe({ type: 'event', buffered: true });
+    } catch (e) {
+      console.warn('[CWJ Monitor] INP observation not supported:', e);
     }
-    context?.emit(EMIT_TYPE.PERFORMANCE_DOMCONTENTLOADED, e.timeStamp);
   };
 
-  const handleLoad = (e: Event) => {
-    if (options.filter && !options.filter(EMIT_TYPE.PERFORMANCE_LOAD, e.timeStamp)) {
-      return;
+  const monitorLongTask = () => {
+    const entryHandler = (list: { getEntries: () => any }) => {
+      for (const entry of list.getEntries()) {
+        if (options.filter && !options.filter(EMIT_TYPE.PERFORMANCE_LONGTASK, entry)) {
+          continue;
+        }
+        // 长任务默认时间为50ms，这里提高阀值，减少日志噪音
+        if (entry.duration > 100) {
+          context?.emit(EMIT_TYPE.PERFORMANCE_LONGTASK, {
+            startTime: entry.startTime,
+            duration: entry.duration,
+            name: entry.name,
+            attribution: entry.attribution,
+          });
+        }
+      }
+    };
+
+    try {
+      longTaskObserver = new PerformanceObserver(entryHandler);
+      longTaskObserver.observe({ type: 'longtask', buffered: true });
+    } catch (e) {
+      console.warn('[CWJ Monitor] Long Task observation not supported:', e);
     }
-    context?.emit(EMIT_TYPE.PERFORMANCE_LOAD, e.timeStamp);
   };
 
   return {
@@ -71,14 +139,17 @@ export const PerformancePlugin = (options: PerformanceOptions = {}): IPlugin => 
       context = ctx;
       monitorPaintMetrics();
       monitorLCP();
-      window.addEventListener('DOMContentLoaded', handleDCL);
-      window.addEventListener('load', handleLoad);
+      monitorINP();
+      monitorLongTask();
     },
     uninstall: () => {
       paintObserver?.disconnect();
       lcpObserver?.disconnect();
-      window.removeEventListener('DOMContentLoaded', handleDCL);
-      window.removeEventListener('load', handleLoad);
+      inpObserver?.disconnect();
+      longTaskObserver?.disconnect();
+      // 清理所有待处理的 INP 定时器
+      interactionMap.forEach((value) => clearTimeout(value.timeoutId));
+      interactionMap.clear();
     },
   };
 };

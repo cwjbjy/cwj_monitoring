@@ -86,7 +86,15 @@ interface TransportConfig {
 
 ### 性能插件 (`PerformancePlugin`)
 
-追踪 Core Web Vitals 和页面加载性能。支持通过 `filter` 过滤特定指标。
+追踪核心性能指标和页面加载体验：
+
+- **FP (First Paint)**: 首次绘制时间
+- **FCP (First Contentful Paint)**: 首次内容绘制时间
+- **LCP (Largest Contentful Paint)**: 最大内容绘制时间
+- **INP (Interaction to Next Paint)**: 交互到下一次绘制的延迟（关注交互响应性）
+- **Long Task**: 超过 100ms 的长任务（关注主线程阻塞）
+
+支持通过 `filter` 过滤特定指标。
 
 ### 行为插件 (`BehaviorPlugin`)
 
