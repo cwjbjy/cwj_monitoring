@@ -38,9 +38,9 @@ npm install cwj_monitoring
 ### 基础用法
 
 ```typescript
-import { Core, ErrorPlugin, PerformancePlugin, XHRPlugin, FetchPlugin } from 'cwj_monitoring';
+import { createMonitor, ErrorPlugin, PerformancePlugin, XHRPlugin, FetchPlugin } from 'cwj_monitoring';
 
-const monitor = new Core({
+const monitor = createMonitor({
   url: 'https://your-api.com/collect', // 必填：数据收集接口
   data: {
     appVersion: '1.2.3',
@@ -110,9 +110,9 @@ interface TransportConfig {
 ### 自定义全局变量名
 
 ```typescript
-import { Core } from 'cwj_monitoring';
+import { createMonitor } from 'cwj_monitoring';
 
-new Core({
+createMonitor({
   url: '...',
   globalKey: '$myMonitor',
 }).run();
@@ -126,9 +126,9 @@ window.$myMonitor.emit('custom_event', { foo: 'bar' });
 你可以为插件传入配置对象，例如只监控特定按钮的点击：
 
 ```typescript
-import { Core, BehaviorPlugin, XHRPlugin } from 'cwj_monitoring';
+import { createMonitor, BehaviorPlugin, XHRPlugin } from 'cwj_monitoring';
 
-const monitor = new Core({ url: '...' });
+const monitor = createMonitor({ url: '...' });
 
 monitor
   .use(

@@ -89,10 +89,10 @@
   </div>
 
   <script type="module">
-    import { Core, ErrorPlugin, BehaviorPlugin, PerformancePlugin, PVPlugin, XHRPlugin, FetchPlugin } from "./dist/index.js";
+    import { createMonitor, ErrorPlugin, BehaviorPlugin, PerformancePlugin, PVPlugin, XHRPlugin, FetchPlugin } from "./dist/index.js";
 
     try {
-      const monitor = new Core({
+      const monitor = createMonitor({
         url: 'http://localhost:3000/report',
         appId: 'cwj_monitoring_demo',
         userId: 'user_123456',
