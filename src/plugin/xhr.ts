@@ -1,6 +1,5 @@
-import DefinePlugin from './definePlugin';
+import DefinePlugin, { PluginContext } from './definePlugin';
 import { TYPES, EMIT_TYPE } from '../types/event';
-import Core from '../core';
 
 // 扩展 XMLHttpRequest 接口以包含自定义属性
 interface CustomXMLHttpRequest extends XMLHttpRequest {
@@ -19,8 +18,8 @@ class XHRPlugin extends DefinePlugin {
     super(TYPES.XHR);
   }
 
-  install(track: Core): void {
-    this.tracker = track;
+  install(context: PluginContext): void {
+    this.context = context;
     this.setupXHRListeners();
   }
 
@@ -52,7 +51,7 @@ class XHRPlugin extends DefinePlugin {
         if (this._xhr_info) {
           // 防止死循环：忽略发送到监控后台的请求
           // 使用类型断言访问私有属性 url
-          const trackerUrl = self.tracker?.url;
+          const trackerUrl = self.context?.url;
           const { url, method, startTime } = this._xhr_info;
 
           if (trackerUrl && url.includes(trackerUrl)) {
@@ -74,7 +73,7 @@ class XHRPlugin extends DefinePlugin {
               response: this.response ? String(this.response).slice(0, 200) : '',
             };
 
-            self.tracker?.emit(EMIT_TYPE.XHR, data);
+            self.context?.emit(EMIT_TYPE.XHR, data);
           }
         }
       };

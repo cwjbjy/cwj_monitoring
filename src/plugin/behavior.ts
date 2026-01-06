@@ -1,5 +1,4 @@
-import DefinePlugin from './definePlugin';
-import Core from '../core';
+import DefinePlugin, { PluginContext } from './definePlugin';
 import { EMIT_TYPE } from '../types/event';
 import { TYPES } from '../types/event';
 
@@ -8,8 +7,8 @@ class BehaviorPlugin extends DefinePlugin {
     super(TYPES.CLICK);
   }
 
-  install(track: Core): void {
-    this.tracker = track;
+  install(context: PluginContext): void {
+    this.context = context;
     this.setupClickListeners();
   }
 
@@ -27,7 +26,7 @@ class BehaviorPlugin extends DefinePlugin {
         xPath: this.getElementXPath(target),
       };
 
-      this.tracker?.emit(EMIT_TYPE.BEHAVIOR_CLICK, clickData);
+      this.context?.emit(EMIT_TYPE.BEHAVIOR_CLICK, clickData);
     };
 
     const listener = (e: Event) => {

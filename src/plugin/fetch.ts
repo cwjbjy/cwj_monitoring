@@ -1,14 +1,13 @@
-import DefinePlugin from './definePlugin';
+import DefinePlugin, { PluginContext } from './definePlugin';
 import { TYPES, EMIT_TYPE } from '../types/event';
-import Core from '../core';
 
 class FetchPlugin extends DefinePlugin {
   constructor() {
     super(TYPES.FETCH);
   }
 
-  install(track: Core): void {
-    this.tracker = track;
+  install(context: PluginContext): void {
+    this.context = context;
     this.setupFetchListeners();
   }
 
@@ -24,7 +23,7 @@ class FetchPlugin extends DefinePlugin {
 
       return originFetch.apply(this, [input, init]).then(
         (response) => {
-          const trackerUrl = self.tracker?.url;
+          const trackerUrl = self.context?.url;
           if (trackerUrl && url.includes(trackerUrl)) {
             return response;
           }
@@ -38,12 +37,12 @@ class FetchPlugin extends DefinePlugin {
               duration,
               success: false,
             };
-            self.tracker?.emit(EMIT_TYPE.FETCH, data);
+            self.context?.emit(EMIT_TYPE.FETCH, data);
           }
           return response;
         },
         (error) => {
-          const trackerUrl = self.tracker?.url;
+          const trackerUrl = self.context?.url;
           if (trackerUrl && url.includes(trackerUrl)) {
             throw error;
           }
@@ -57,7 +56,7 @@ class FetchPlugin extends DefinePlugin {
             success: false,
             message: error.message,
           };
-          self.tracker?.emit(EMIT_TYPE.FETCH, data);
+          self.context?.emit(EMIT_TYPE.FETCH, data);
           throw error;
         },
       );

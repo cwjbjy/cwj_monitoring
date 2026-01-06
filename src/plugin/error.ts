@@ -1,5 +1,4 @@
-import Core from '../core';
-import DefinePlugin from './definePlugin';
+import DefinePlugin, { PluginContext } from './definePlugin';
 import { EMIT_TYPE, TYPES } from '../types/event';
 
 /**
@@ -16,8 +15,8 @@ class ErrorPlugin extends DefinePlugin {
   /**
    * 安装错误监控插件
    */
-  install(tracker: Core): void {
-    this.tracker = tracker;
+  install(context: PluginContext): void {
+    this.context = context;
 
     // 如果启用，重写 console.error
     this.overrideConsoleError();
@@ -43,7 +42,7 @@ class ErrorPlugin extends DefinePlugin {
         stack: new Error().stack,
       };
 
-      this.tracker?.emit(EMIT_TYPE.ERROR, errorData);
+      this.context?.emit(EMIT_TYPE.ERROR, errorData);
     };
   }
 
@@ -73,7 +72,7 @@ class ErrorPlugin extends DefinePlugin {
       ...this.getErrorDetails(e),
     };
 
-    this.tracker?.emit(EMIT_TYPE.ERROR, errorData);
+    this.context?.emit(EMIT_TYPE.ERROR, errorData);
   }
 
   /**
@@ -85,7 +84,7 @@ class ErrorPlugin extends DefinePlugin {
       ...this.getPromiseErrorDetails(e),
     };
 
-    this.tracker?.emit(EMIT_TYPE.ERROR, errorData);
+    this.context?.emit(EMIT_TYPE.ERROR, errorData);
   }
 
   /**

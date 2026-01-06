@@ -1,5 +1,4 @@
-import Core from '../core';
-import DefinePlugin from './definePlugin';
+import DefinePlugin, { PluginContext } from './definePlugin';
 import { EMIT_TYPE } from '../types/event';
 import { TYPES } from '../types/event';
 
@@ -8,8 +7,8 @@ class PerformancePlugin extends DefinePlugin {
     super(TYPES.PERFORMANCE);
   }
 
-  install(track: Core): void {
-    this.tracker = track;
+  install(context: PluginContext): void {
+    this.context = context;
     this.setupPerformanceMonitoring();
   }
 
@@ -25,9 +24,9 @@ class PerformancePlugin extends DefinePlugin {
     const entryHandler = (list: { getEntries: () => any }) => {
       for (const entry of list.getEntries()) {
         if (entry.name === 'first-paint') {
-          this.tracker?.emit(EMIT_TYPE.PERFORMANCE_FP, entry.startTime);
+          this.context?.emit(EMIT_TYPE.PERFORMANCE_FP, entry.startTime);
         } else if (entry.name === 'first-contentful-paint') {
-          this.tracker?.emit(EMIT_TYPE.PERFORMANCE_FCP, entry.startTime);
+          this.context?.emit(EMIT_TYPE.PERFORMANCE_FCP, entry.startTime);
         }
       }
       observer.disconnect();
@@ -45,7 +44,7 @@ class PerformancePlugin extends DefinePlugin {
       }
 
       for (const entry of list.getEntries()) {
-        this.tracker?.emit(EMIT_TYPE.PERFORMANCE_LCP, entry.startTime);
+        this.context?.emit(EMIT_TYPE.PERFORMANCE_LCP, entry.startTime);
       }
     };
 
@@ -55,13 +54,13 @@ class PerformancePlugin extends DefinePlugin {
 
   private monitorDCL() {
     window.addEventListener('DOMContentLoaded', (e) => {
-      this.tracker?.emit(EMIT_TYPE.PERFORMANCE_DOMCONTENTLOADED, e.timeStamp);
+      this.context?.emit(EMIT_TYPE.PERFORMANCE_DOMCONTENTLOADED, e.timeStamp);
     });
   }
 
   private monitorLoad() {
     window.addEventListener('load', (e) => {
-      this.tracker?.emit(EMIT_TYPE.PERFORMANCE_LOAD, e.timeStamp);
+      this.context?.emit(EMIT_TYPE.PERFORMANCE_LOAD, e.timeStamp);
     });
   }
 

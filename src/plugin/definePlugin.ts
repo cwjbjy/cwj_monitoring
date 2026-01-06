@@ -1,4 +1,15 @@
-import type Core from '../core';
+import { EMIT_TYPE } from '../types/event';
+
+/**
+ * 插件执行上下文
+ * 提供插件所需的最小功能集，实现插件与核心实例的解耦
+ */
+export interface PluginContext {
+  /** 发送事件 */
+  emit: (type: EMIT_TYPE | string, data: any) => void;
+  /** 监控上报地址（用于网络插件过滤） */
+  url: string;
+}
 
 /**
  * 基础插件接口
@@ -15,9 +26,9 @@ export interface IPlugin {
    * 插件安装函数
    * 当插件注册到追踪器时调用
    *
-   * @param tracker - 核心追踪器实例
+   * @param context - 插件执行上下文
    */
-  install(tracker: Core): void;
+  install(context: PluginContext): void;
 }
 
 /**
@@ -31,10 +42,10 @@ export default abstract class DefinePlugin implements IPlugin {
   public readonly name: string;
 
   /**
-   * 追踪器实例的引用
+   * 插件上下文引用
    * 安装后可用
    */
-  protected tracker?: Core;
+  protected context?: PluginContext;
 
   /**
    * 创建新的插件实例
@@ -49,7 +60,7 @@ export default abstract class DefinePlugin implements IPlugin {
    * 插件安装逻辑
    * 必须由子类实现
    *
-   * @param tracker - 核心追踪器实例
+   * @param context - 插件执行上下文
    */
-  abstract install(tracker: Core): void;
+  abstract install(context: PluginContext): void;
 }

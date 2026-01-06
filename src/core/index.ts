@@ -17,8 +17,13 @@ export default class Core extends EventTrack {
 
   // 启动插件
   run() {
+    const context = {
+      emit: this.emit.bind(this),
+      url: this.url,
+    };
+
     this.pluginMap.forEach((plugin) => {
-      plugin.install(this);
+      plugin.install(context);
     });
   }
 }

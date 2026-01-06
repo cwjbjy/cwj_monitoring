@@ -1,5 +1,4 @@
-import Core from '../core';
-import DefinePlugin from './definePlugin';
+import DefinePlugin, { PluginContext } from './definePlugin';
 import { EMIT_TYPE } from '../types/event';
 import { TYPES } from '../types/event';
 import { getSeconds } from '../utils';
@@ -10,8 +9,8 @@ class PVPlugin extends DefinePlugin {
   constructor() {
     super(TYPES.ROUTER);
   }
-  install(track: Core): void {
-    this.tracker = track;
+  install(context: PluginContext): void {
+    this.context = context;
     this.pageStartTime = Date.now();
     this.lastRouteTime = this.pageStartTime;
     this.setupHashListener(); //监听hash路由
@@ -21,7 +20,7 @@ class PVPlugin extends DefinePlugin {
   private emitRouteChange(type: string) {
     const now = Date.now();
 
-    this.tracker?.emit(EMIT_TYPE.ROUTE_CHANGE, {
+    this.context?.emit(EMIT_TYPE.ROUTE_CHANGE, {
       from: document.referrer,
       to: window.location.href,
       type,
