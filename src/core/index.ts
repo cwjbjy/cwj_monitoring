@@ -2,6 +2,7 @@ import EventTrack from './eventTrack';
 import Reporter from './reporter';
 import type { Options } from '../types/index';
 import type { IPlugin } from '../plugin/definePlugin';
+import { EMIT_TYPE } from '../types/event';
 
 export default class Core extends EventTrack {
   private pluginMap: Map<string, IPlugin> = new Map();
@@ -18,6 +19,15 @@ export default class Core extends EventTrack {
       this.pluginMap.set(plugin.name, plugin);
     }
     return this; // 方便链式调用
+  }
+
+  /**
+   * 自定义事件上报
+   * @param data 上报的数据
+   * @param type 事件类型，默认为 'custom'
+   */
+  log(data: any, type: string = EMIT_TYPE.CUSTOM): void {
+    this.emit(type, data);
   }
 
   // 启动插件

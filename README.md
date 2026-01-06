@@ -92,9 +92,24 @@ interface TransportConfig {
 - **FCP (First Contentful Paint)**: 首次内容绘制时间
 - **LCP (Largest Contentful Paint)**: 最大内容绘制时间
 - **INP (Interaction to Next Paint)**: 交互到下一次绘制的延迟（关注交互响应性）
-- **Long Task**: 超过 100ms 的长任务（关注主线程阻塞）
+- **Long Task**: 超过阈值的长任务（关注主线程阻塞）
+- **Resource**: 仅监听 `fetch` 与 `xmlhttprequest` 的网络请求耗时
 
-支持通过 `filter` 过滤特定指标。
+**配置项：**
+
+- `longTaskThreshold`: 长任务阈值 (ms)，默认 `100`
+- `resourceThreshold`: 资源加载阈值 (ms)，默认 `1000`
+- `inpThreshold`: INP 阈值 (ms)，默认 `200`
+- `filter`: 过滤函数，支持按类型过滤指标
+
+示例：
+
+```typescript
+PerformancePlugin({
+  longTaskThreshold: 200, // 仅记录超过 200ms 的长任务
+  resourceThreshold: 2000, // 仅记录超过 2s 的请求
+});
+```
 
 ### 行为插件 (`BehaviorPlugin`)
 
@@ -135,7 +150,7 @@ window.$myMonitor.emit('custom_event', { foo: 'bar' });
 你可以为插件传入配置对象，例如只监控特定按钮的点击：
 
 ```typescript
-import { createMonitor, BehaviorPlugin, XHRPlugin } from 'cwj_monitoring';
+import { createMonitor, BehaviorPlugin, XHRPlugin, PerformancePlugin, EMIT_TYPE } from 'cwj_monitoring';
 
 const monitor = createMonitor({ url: '...' });
 
@@ -152,6 +167,12 @@ monitor
     XHRPlugin({
       // 忽略特定 API 的错误监控
       filter: (method, url) => !url.includes('/ignore-api/'),
+    }),
+  )
+  .use(
+    PerformancePlugin({
+      // 过滤掉资源加载监控，只保留核心性能指标
+      filter: (type) => type !== EMIT_TYPE.PERFORMANCE_RESOURCE,
     }),
   )
   .run();

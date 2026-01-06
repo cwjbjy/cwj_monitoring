@@ -1,9 +1,17 @@
 import { IPlugin, PluginContext } from './definePlugin';
 import { EMIT_TYPE, TYPES } from '../types/event';
 
+import { DEFAULT_INP_THRESHOLD, DEFAULT_LONG_TASK_THRESHOLD, DEFAULT_RESOURCE_THRESHOLD } from '../constant';
+
 export interface PerformanceOptions {
   /** 过滤函数，返回 false 则不记录该性能指标 */
   filter?: (type: EMIT_TYPE, value: any) => boolean;
+  /** 长任务阈值 (ms)，超过此值则上报，默认 100 */
+  longTaskThreshold?: number;
+  /** 资源加载阈值 (ms)，超过此值则上报，默认 1000 */
+  resourceThreshold?: number;
+  /** INP 阈值 (ms)，超过此值则上报，默认 200 */
+  inpThreshold?: number;
 }
 
 export const PerformancePlugin = (options: PerformanceOptions = {}): IPlugin => {
@@ -12,6 +20,7 @@ export const PerformancePlugin = (options: PerformanceOptions = {}): IPlugin => 
   let lcpObserver: PerformanceObserver | null = null;
   let inpObserver: PerformanceObserver | null = null;
   let longTaskObserver: PerformanceObserver | null = null;
+  let resourceObserver: PerformanceObserver | null = null;
   // 存储交互事件的 Map: interactionId -> { entry, timeoutId }
   const interactionMap = new Map<number, { entry: any; timeoutId: any }>();
 
@@ -86,12 +95,16 @@ export const PerformancePlugin = (options: PerformanceOptions = {}): IPlugin => 
             return;
           }
 
-          context?.emit(EMIT_TYPE.PERFORMANCE_INP, {
-            value: maxEntry.duration,
-            startTime: maxEntry.startTime,
-            name: maxEntry.name,
-            interactionId: maxEntry.interactionId,
-          });
+          // 只上报耗时超过阈值的事件
+          const threshold = options.inpThreshold ?? DEFAULT_INP_THRESHOLD;
+          if (maxEntry.duration > threshold) {
+            context?.emit(EMIT_TYPE.PERFORMANCE_INP, {
+              value: maxEntry.duration,
+              startTime: maxEntry.startTime,
+              name: maxEntry.name,
+              interactionId: maxEntry.interactionId,
+            });
+          }
         }, 200);
 
         interactionMap.set(entry.interactionId, { entry: maxEntry, timeoutId });
@@ -114,7 +127,8 @@ export const PerformancePlugin = (options: PerformanceOptions = {}): IPlugin => 
           continue;
         }
         // 长任务默认时间为50ms，这里提高阀值，减少日志噪音
-        if (entry.duration > 100) {
+        const threshold = options.longTaskThreshold ?? DEFAULT_LONG_TASK_THRESHOLD;
+        if (entry.duration > threshold) {
           context?.emit(EMIT_TYPE.PERFORMANCE_LONGTASK, {
             startTime: entry.startTime,
             duration: entry.duration,
@@ -133,6 +147,42 @@ export const PerformancePlugin = (options: PerformanceOptions = {}): IPlugin => 
     }
   };
 
+  const monitorResource = () => {
+    const entryHandler = (list: { getEntries: () => any }) => {
+      for (const entry of list.getEntries()) {
+        // 只监听 fetch 与 xmlhttprequest
+        if (entry.initiatorType !== 'fetch' && entry.initiatorType !== 'xmlhttprequest') {
+          continue;
+        }
+
+        if (options.filter && !options.filter(EMIT_TYPE.PERFORMANCE_RESOURCE, entry)) {
+          continue;
+        }
+
+        // 资源加载时间超过阈值，上报
+        const threshold = options.resourceThreshold ?? DEFAULT_RESOURCE_THRESHOLD;
+        if (entry.duration > threshold) {
+          context?.emit(EMIT_TYPE.PERFORMANCE_RESOURCE, {
+            name: entry.name, // 资源 URL
+            initiatorType: entry.initiatorType,
+            duration: entry.duration,
+            startTime: entry.startTime,
+            transferSize: entry.transferSize,
+            encodedBodySize: entry.encodedBodySize,
+            decodedBodySize: entry.decodedBodySize,
+          });
+        }
+      }
+    };
+
+    try {
+      resourceObserver = new PerformanceObserver(entryHandler);
+      resourceObserver.observe({ type: 'resource', buffered: true });
+    } catch (e) {
+      console.warn('[CWJ Monitor] Resource observation not supported:', e);
+    }
+  };
+
   return {
     name: TYPES.PERFORMANCE,
     install: (ctx: PluginContext) => {
@@ -141,12 +191,14 @@ export const PerformancePlugin = (options: PerformanceOptions = {}): IPlugin => 
       monitorLCP();
       monitorINP();
       monitorLongTask();
+      monitorResource();
     },
     uninstall: () => {
       paintObserver?.disconnect();
       lcpObserver?.disconnect();
       inpObserver?.disconnect();
       longTaskObserver?.disconnect();
+      resourceObserver?.disconnect();
       // 清理所有待处理的 INP 定时器
       interactionMap.forEach((value) => clearTimeout(value.timeoutId));
       interactionMap.clear();

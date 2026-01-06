@@ -29,6 +29,7 @@ export enum EMIT_TYPE {
   PERFORMANCE_LCP = 'performance_lcp',
   PERFORMANCE_INP = 'performance_inp',
   PERFORMANCE_LONGTASK = 'performance_longtask',
+  PERFORMANCE_RESOURCE = 'performance_resource',
 
   // XHR 事件
   XHR = 'xhr',
