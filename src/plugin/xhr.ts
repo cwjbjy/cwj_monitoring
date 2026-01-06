@@ -13,9 +13,17 @@ interface CustomXMLHttpRequest extends XMLHttpRequest {
 type OpenArgs = Parameters<typeof window.XMLHttpRequest.prototype.open>;
 type SendArgs = Parameters<typeof window.XMLHttpRequest.prototype.send>;
 
-class XHRPlugin extends DefinePlugin {
-  constructor() {
+export interface XHROptions {
+  /** 过滤函数，返回 false 则不记录该请求 */
+  filter?: (method: string, url: string) => boolean;
+}
+
+export class XHRPlugin extends DefinePlugin {
+  private options: XHROptions;
+
+  constructor(options: XHROptions = {}) {
     super(TYPES.XHR);
+    this.options = options;
   }
 
   install(context: PluginContext): void {
@@ -50,7 +58,6 @@ class XHRPlugin extends DefinePlugin {
       const onLoadend = () => {
         if (this._xhr_info) {
           // 防止死循环：忽略发送到监控后台的请求
-          // 使用类型断言访问私有属性 url
           const trackerUrl = self.context?.url;
           const { url, method, startTime } = this._xhr_info;
 
@@ -58,8 +65,12 @@ class XHRPlugin extends DefinePlugin {
             return;
           }
 
-          const duration = Date.now() - startTime;
+          // 如果配置了过滤函数且返回 false，则不记录
+          if (self.options.filter && !self.options.filter(method, url)) {
+            return;
+          }
 
+          const duration = Date.now() - startTime;
           const status = this.status;
 
           // 监听HTTP层面 状态码不是200~299的错误
@@ -83,5 +94,3 @@ class XHRPlugin extends DefinePlugin {
     };
   }
 }
-
-export default new XHRPlugin();

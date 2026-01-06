@@ -2,9 +2,17 @@ import DefinePlugin, { PluginContext } from './definePlugin';
 import { EMIT_TYPE } from '../types/event';
 import { TYPES } from '../types/event';
 
-class PerformancePlugin extends DefinePlugin {
-  constructor() {
+export interface PerformanceOptions {
+  /** 过滤函数，返回 false 则不记录该性能指标 */
+  filter?: (type: EMIT_TYPE, value: any) => boolean;
+}
+
+export class PerformancePlugin extends DefinePlugin {
+  private options: PerformanceOptions;
+
+  constructor(options: PerformanceOptions = {}) {
     super(TYPES.PERFORMANCE);
+    this.options = options;
   }
 
   install(context: PluginContext): void {
@@ -17,15 +25,20 @@ class PerformancePlugin extends DefinePlugin {
     this.monitorLCP(); // LCP
     this.monitorDCL(); // DOMContentLoaded
     this.monitorLoad(); // Load
-    // this.monitorFPS(); // 帧率监控 // 不建议使用，会影响性能
   }
 
   private monitorPaintMetrics() {
     const entryHandler = (list: { getEntries: () => any }) => {
       for (const entry of list.getEntries()) {
         if (entry.name === 'first-paint') {
+          if (this.options.filter && !this.options.filter(EMIT_TYPE.PERFORMANCE_FP, entry.startTime)) {
+            continue;
+          }
           this.context?.emit(EMIT_TYPE.PERFORMANCE_FP, entry.startTime);
         } else if (entry.name === 'first-contentful-paint') {
+          if (this.options.filter && !this.options.filter(EMIT_TYPE.PERFORMANCE_FCP, entry.startTime)) {
+            continue;
+          }
           this.context?.emit(EMIT_TYPE.PERFORMANCE_FCP, entry.startTime);
         }
       }
@@ -33,7 +46,6 @@ class PerformancePlugin extends DefinePlugin {
     };
 
     const observer = new PerformanceObserver(entryHandler);
-    // buffered 属性表示是否观察缓存数据，也就是说观察代码添加时机比事情触发时机晚也没关系。
     observer.observe({ type: 'paint', buffered: true });
   }
 
@@ -44,6 +56,9 @@ class PerformancePlugin extends DefinePlugin {
       }
 
       for (const entry of list.getEntries()) {
+        if (this.options.filter && !this.options.filter(EMIT_TYPE.PERFORMANCE_LCP, entry.startTime)) {
+          continue;
+        }
         this.context?.emit(EMIT_TYPE.PERFORMANCE_LCP, entry.startTime);
       }
     };
@@ -54,40 +69,19 @@ class PerformancePlugin extends DefinePlugin {
 
   private monitorDCL() {
     window.addEventListener('DOMContentLoaded', (e) => {
+      if (this.options.filter && !this.options.filter(EMIT_TYPE.PERFORMANCE_DOMCONTENTLOADED, e.timeStamp)) {
+        return;
+      }
       this.context?.emit(EMIT_TYPE.PERFORMANCE_DOMCONTENTLOADED, e.timeStamp);
     });
   }
 
   private monitorLoad() {
     window.addEventListener('load', (e) => {
+      if (this.options.filter && !this.options.filter(EMIT_TYPE.PERFORMANCE_LOAD, e.timeStamp)) {
+        return;
+      }
       this.context?.emit(EMIT_TYPE.PERFORMANCE_LOAD, e.timeStamp);
     });
   }
-
-  // private monitorFPS() {
-  //   let lastTime = performance.now();
-  //   let frameCount = 0;
-  //   let fps = 0;
-
-  //   const calculateFPS = (now: DOMHighResTimeStamp) => {
-  //     frameCount++;
-
-  //     if (now > lastTime + 1000) {
-  //       fps = Math.round((frameCount * 1000) / (now - lastTime));
-  //       this.track?.emit(EMIT_TYPE.PERFORMANCE_FPS, {
-  //         value: fps,
-  //         timestamp: now,
-  //       });
-
-  //       frameCount = 0;
-  //       lastTime = now;
-  //     }
-
-  //     requestAnimationFrame(calculateFPS);
-  //   };
-
-  //   requestAnimationFrame(calculateFPS);
-  // }
 }
-
-export default new PerformancePlugin();

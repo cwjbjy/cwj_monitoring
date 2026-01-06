@@ -31,6 +31,12 @@ export default class EventTrack {
 
     // 页面卸载前刷新事件
     beforeUnload(() => this.flush());
+
+    // 支持自定义全局变量名称，默认为 $track
+    const globalKey = options.globalKey || '$track';
+    if (typeof window !== 'undefined') {
+      (window as any)[globalKey] = this;
+    }
   }
 
   /**

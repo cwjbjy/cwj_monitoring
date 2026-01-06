@@ -18,7 +18,7 @@
 ### 🎯 开发者友好
 
 - **TypeScript 优先** - 完整的类型安全
-- **插件架构** - 模块化和可扩展设计，支持 Tree-shaking
+- **插件架构** - 模块化和可扩展设计，支持上下文注入和高度配置化
 - **自定义全局变量** - 避免命名冲突
 
 ### 🔒 安全与性能
@@ -38,18 +38,17 @@ npm install cwj_monitoring
 ### 基础用法
 
 ```typescript
-import { init, ErrorPlugin, PerformancePlugin, XHRPlugin, FetchPlugin } from 'cwj_monitoring';
+import { Core, ErrorPlugin, PerformancePlugin, XHRPlugin, FetchPlugin } from 'cwj_monitoring';
 
-init({
+const monitor = new Core({
   url: 'https://your-api.com/collect', // 必填：数据收集接口
-  plugin: [ErrorPlugin, PerformancePlugin, XHRPlugin, FetchPlugin], // 可选：启用的插件
   data: {
-    // 可选：自定义元数据
     appVersion: '1.2.3',
     environment: 'production',
-    userId: 'user-123',
   },
 });
+
+monitor.use(new ErrorPlugin()).use(new PerformancePlugin()).use(new XHRPlugin()).use(new FetchPlugin()).run();
 ```
 
 ---
@@ -61,7 +60,6 @@ init({
 | 属性        | 类型                  | 必填 | 默认值   | 描述                         |
 | :---------- | :-------------------- | :--- | :------- | :--------------------------- |
 | `url`       | `string`              | ✅   | -        | 数据收集的后端 URL           |
-| `plugin`    | `IPlugin[]`           | ❌   | `[]`     | 要启用的插件实例数组         |
 | `data`      | `Record<string, any>` | ❌   | `{}`     | 附加到所有事件的自定义元数据 |
 | `transport` | `TransportConfig`     | ❌   | 见下文   | 数据传输设置                 |
 | `globalKey` | `string`              | ❌   | `$track` | 挂载在 window 上的全局变量名 |
@@ -79,29 +77,31 @@ interface TransportConfig {
 
 ## 🔌 插件
 
+所有插件都支持在构造函数中传入 `filter` 函数来过滤不需要记录的事件。
+
 ### 错误插件 (`ErrorPlugin`)
 
-捕获 JS 错误、资源加载失败、Promise 拒绝和 console.error。
+捕获 JS 错误、资源加载失败、Promise 拒绝和 console.error。支持通过 `filter` 过滤特定错误。
 
 ### 性能插件 (`PerformancePlugin`)
 
-追踪 Core Web Vitals 和页面加载性能。
+追踪 Core Web Vitals 和页面加载性能。支持通过 `filter` 过滤特定指标。
 
 ### 行为插件 (`BehaviorPlugin`)
 
-监控用户点击交互。
+监控用户点击交互。支持通过 `filter` 过滤特定元素。
 
 ### 路由插件 (`PVPlugin`)
 
-追踪单页应用的页面跳转。
+追踪单页应用的页面跳转。支持通过 `filter` 过滤特定路由。
 
 ### XHR 插件 (`XHRPlugin`)
 
-监控 XMLHttpRequest 请求详情，仅记录失败的请求（状态码非 2xx），包括 URL、方法、状态码、耗时和响应内容。
+监控 XMLHttpRequest 请求详情，仅记录失败的请求（状态码非 2xx）。支持通过 `filter` 根据 URL 或方法过滤请求。
 
 ### Fetch 插件 (`FetchPlugin`)
 
-监控 fetch 请求详情，仅记录失败的请求（状态码非 2xx 或网络错误），包括 URL、方法、状态码和耗时。
+监控 fetch 请求详情，仅记录失败的请求（状态码非 2xx 或网络错误）。支持通过 `filter` 根据 URL 或方法过滤请求。
 
 ---
 
@@ -110,27 +110,40 @@ interface TransportConfig {
 ### 自定义全局变量名
 
 ```typescript
-init({
+import { Core } from 'cwj_monitoring';
+
+new Core({
   url: '...',
   globalKey: '$myMonitor',
-});
+}).run();
 
 // 使用自定义键名发送事件
 window.$myMonitor.emit('custom_event', { foo: 'bar' });
 ```
 
-### 手动事件追踪
+### 插件高级配置 (过滤)
+
+你可以为插件传入配置对象，例如只监控特定按钮的点击：
 
 ```typescript
-import { init, ErrorPlugin } from 'cwj_monitoring';
+import { Core, BehaviorPlugin, XHRPlugin } from 'cwj_monitoring';
 
-init({ url: '...' });
+const monitor = new Core({ url: '...' });
 
-// 默认挂载在 window.$track
-window.$track.emit('BUSINESS_ERROR', {
-  code: 500,
-  message: '支付失败',
-});
+monitor
+  .use(
+    new BehaviorPlugin({
+      // 只记录带有 data-track 属性的元素点击
+      filter: (el) => el.hasAttribute('data-track'),
+    }),
+  )
+  .use(
+    new XHRPlugin({
+      // 忽略特定 API 的错误监控
+      filter: (method, url) => !url.includes('/ignore-api/'),
+    }),
+  )
+  .run();
 ```
 
 ---

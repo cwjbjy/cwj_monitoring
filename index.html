@@ -68,7 +68,8 @@
 
   <div class="card">
     <h2>🖱️ Behavior Tracking</h2>
-    <button class="btn" id="click-btn">Track Click</button>
+    <button class="btn" id="click-btn">Track Click (Recorded)</button>
+    <button class="btn" id="ignore-btn">Ignore Click (Filtered)</button>
     <input type="text" placeholder="Type something..." style="padding: 8px;">
   </div>
 
@@ -88,22 +89,15 @@
   </div>
 
   <script type="module">
-    import { init, ErrorPlugin, BehaviorPlugin, PerformancePlugin, PVPlugin, XHRPlugin, FetchPlugin } from "./dist/index.js";
+    import { Core, ErrorPlugin, BehaviorPlugin, PerformancePlugin, PVPlugin, XHRPlugin, FetchPlugin } from "./dist/index.js";
 
     try {
-      init({
-        url: "http://127.0.0.1:9000/collect",
-        globalKey: '$monitor',
-        plugin: [
-          ErrorPlugin,
-          BehaviorPlugin,
-          PerformancePlugin,
-          PVPlugin,
-          XHRPlugin,
-          FetchPlugin
-        ],
+      const monitor = new Core({
+        url: 'http://localhost:3000/report',
+        appId: 'cwj_monitoring_demo',
+        userId: 'user_123456',
         data: {
-          env: 'preview',
+          env: 'development',
           version: '1.0.0'
         },
         transport: {
@@ -112,7 +106,19 @@
         }
       });
 
-      document.getElementById('status').textContent = '✅ Active (Global: window.$monitor)';
+      // 演示配置化：BehaviorPlugin 只记录带有 data-track 属性的点击或普通按钮
+      monitor
+        .use(new ErrorPlugin())
+        .use(new PVPlugin())
+        .use(new BehaviorPlugin({
+          filter: (el) => el.id !== 'ignore-btn'
+        }))
+        .use(new PerformancePlugin())
+        .use(new XHRPlugin())
+        .use(new FetchPlugin())
+        .run();
+
+      document.getElementById('status').textContent = '✅ Active';
       console.log('SDK Initialized');
     } catch (e) {
       document.getElementById('status').textContent = '❌ Failed: ' + e.message;
@@ -132,7 +138,6 @@
       const img = document.createElement('img');
       img.src = 'https://example.com/404.jpg';
       document.body.appendChild(img);
-      setTimeout(() => img.remove(), 100);
     });
 
     // Network Triggers

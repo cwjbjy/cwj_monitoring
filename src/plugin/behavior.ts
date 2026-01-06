@@ -2,9 +2,17 @@ import DefinePlugin, { PluginContext } from './definePlugin';
 import { EMIT_TYPE } from '../types/event';
 import { TYPES } from '../types/event';
 
-class BehaviorPlugin extends DefinePlugin {
-  constructor() {
+export interface BehaviorOptions {
+  /** 过滤函数，返回 false 则不记录该点击事件 */
+  filter?: (element: HTMLElement) => boolean;
+}
+
+export class BehaviorPlugin extends DefinePlugin {
+  private options: BehaviorOptions;
+
+  constructor(options: BehaviorOptions = {}) {
     super(TYPES.CLICK);
+    this.options = options;
   }
 
   install(context: PluginContext): void {
@@ -16,6 +24,11 @@ class BehaviorPlugin extends DefinePlugin {
     const handleClick = (e: Event) => {
       const target = e.target as HTMLElement;
       if (!target) return;
+
+      // 如果配置了过滤函数且返回 false，则不记录
+      if (this.options.filter && !this.options.filter(target)) {
+        return;
+      }
 
       // 收集点击元素信息
       const clickData = {
@@ -49,5 +62,3 @@ class BehaviorPlugin extends DefinePlugin {
     return `${this.getElementXPath(element.parentNode as HTMLElement)}/${element.tagName.toLowerCase()}[${idx}]`;
   }
 }
-
-export default new BehaviorPlugin();

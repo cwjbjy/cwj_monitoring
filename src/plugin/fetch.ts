@@ -1,9 +1,17 @@
 import DefinePlugin, { PluginContext } from './definePlugin';
 import { TYPES, EMIT_TYPE } from '../types/event';
 
-class FetchPlugin extends DefinePlugin {
-  constructor() {
+export interface FetchOptions {
+  /** 过滤函数，返回 false 则不记录该请求 */
+  filter?: (method: string, url: string) => boolean;
+}
+
+export class FetchPlugin extends DefinePlugin {
+  private options: FetchOptions;
+
+  constructor(options: FetchOptions = {}) {
     super(TYPES.FETCH);
+    this.options = options;
   }
 
   install(context: PluginContext): void {
@@ -28,6 +36,11 @@ class FetchPlugin extends DefinePlugin {
             return response;
           }
 
+          // 如果配置了过滤函数且返回 false，则不记录
+          if (self.options.filter && !self.options.filter(method, url)) {
+            return response;
+          }
+
           if (!response.ok) {
             const duration = Date.now() - startTime;
             const data = {
@@ -47,6 +60,11 @@ class FetchPlugin extends DefinePlugin {
             throw error;
           }
 
+          // 如果配置了过滤函数且返回 false，则不记录
+          if (self.options.filter && !self.options.filter(method, url)) {
+            throw error;
+          }
+
           const duration = Date.now() - startTime;
           const data = {
             method,
@@ -63,5 +81,3 @@ class FetchPlugin extends DefinePlugin {
     };
   }
 }
-
-export default new FetchPlugin();

@@ -1,15 +1,22 @@
 import DefinePlugin, { PluginContext } from './definePlugin';
 import { EMIT_TYPE, TYPES } from '../types/event';
 
+export interface ErrorOptions {
+  /** 过滤函数，返回 false 则不记录该错误 */
+  filter?: (error: any) => boolean;
+}
+
 /**
  * 错误监控插件
  * 监控并捕获 JavaScript 错误、资源加载错误、Promise 拒绝以及 console.error 调用
  */
-class ErrorPlugin extends DefinePlugin {
+export class ErrorPlugin extends DefinePlugin {
   private originalConsoleError?: (...data: any[]) => void;
+  private options: ErrorOptions;
 
-  constructor() {
+  constructor(options: ErrorOptions = {}) {
     super(TYPES.ERROR);
+    this.options = options;
   }
 
   /**
@@ -42,6 +49,11 @@ class ErrorPlugin extends DefinePlugin {
         stack: new Error().stack,
       };
 
+      // 如果配置了过滤函数且返回 false，则不记录
+      if (this.options.filter && !this.options.filter(errorData)) {
+        return;
+      }
+
       this.context?.emit(EMIT_TYPE.ERROR, errorData);
     };
   }
@@ -72,6 +84,11 @@ class ErrorPlugin extends DefinePlugin {
       ...this.getErrorDetails(e),
     };
 
+    // 如果配置了过滤函数且返回 false，则不记录
+    if (this.options.filter && !this.options.filter(errorData)) {
+      return;
+    }
+
     this.context?.emit(EMIT_TYPE.ERROR, errorData);
   }
 
@@ -83,6 +100,11 @@ class ErrorPlugin extends DefinePlugin {
       type: 'async',
       ...this.getPromiseErrorDetails(e),
     };
+
+    // 如果配置了过滤函数且返回 false，则不记录
+    if (this.options.filter && !this.options.filter(errorData)) {
+      return;
+    }
 
     this.context?.emit(EMIT_TYPE.ERROR, errorData);
   }
@@ -190,5 +212,3 @@ class ErrorPlugin extends DefinePlugin {
     return Math.abs(hash).toString(36);
   }
 }
-
-export default new ErrorPlugin();
