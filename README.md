@@ -38,11 +38,11 @@ npm install cwj_monitoring
 ### 基础用法
 
 ```typescript
-import { init, ErrorPlugin, PerformancePlugin } from 'cwj_monitoring';
+import { init, ErrorPlugin, PerformancePlugin, XHRPlugin, FetchPlugin } from 'cwj_monitoring';
 
 init({
   url: 'https://your-api.com/collect', // 必填：数据收集接口
-  plugin: [ErrorPlugin, PerformancePlugin], // 可选：启用的插件
+  plugin: [ErrorPlugin, PerformancePlugin, XHRPlugin, FetchPlugin], // 可选：启用的插件
   data: {
     // 可选：自定义元数据
     appVersion: '1.2.3',
@@ -94,6 +94,14 @@ interface TransportConfig {
 ### 路由插件 (`PVPlugin`)
 
 追踪单页应用的页面跳转。
+
+### XHR 插件 (`XHRPlugin`)
+
+监控 XMLHttpRequest 请求详情，仅记录失败的请求（状态码非 2xx），包括 URL、方法、状态码、耗时和响应内容。
+
+### Fetch 插件 (`FetchPlugin`)
+
+监控 fetch 请求详情，仅记录失败的请求（状态码非 2xx 或网络错误），包括 URL、方法、状态码和耗时。
 
 ---
 

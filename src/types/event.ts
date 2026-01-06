@@ -7,6 +7,8 @@ export enum TYPES {
   CLICK = 'click',
   PERFORMANCE = 'performance',
   ROUTER = 'router',
+  XHR = 'xhr',
+  FETCH = 'fetch',
 }
 
 /**
@@ -36,6 +38,10 @@ export enum EMIT_TYPE {
 
   // 性能事件 - 可选
   PERFORMANCE_FPS = 'performance_fps',
+
+  // XHR 事件
+  XHR = 'xhr',
+  FETCH = 'fetch',
 
   // 自定义事件
   CUSTOM = 'custom',

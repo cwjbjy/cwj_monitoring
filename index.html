@@ -73,13 +73,22 @@
   </div>
 
   <div class="card">
+    <h2>🌐 Network Tracking</h2>
+    <button class="btn" id="xhr-success">XHR Success</button>
+    <button class="btn btn-error" id="xhr-error">XHR Error (404)</button>
+    <button class="btn" id="fetch-success">Fetch Success</button>
+    <button class="btn btn-error" id="fetch-error">Fetch Error (404)</button>
+    <button class="btn btn-error" id="fetch-net-error">Fetch Network Error</button>
+  </div>
+
+  <div class="card">
     <h2>🛣️ Route Tracking</h2>
     <button class="btn" onclick="history.pushState({}, '', '/page-a')">Go to Page A</button>
     <button class="btn" onclick="history.pushState({}, '', '/page-b')">Go to Page B</button>
   </div>
 
   <script type="module">
-    import { init, ErrorPlugin, BehaviorPlugin, PerformancePlugin, PVPlugin } from "./dist/index.js";
+    import { init, ErrorPlugin, BehaviorPlugin, PerformancePlugin, PVPlugin, XHRPlugin, FetchPlugin } from "./dist/index.js";
 
     try {
       init({
@@ -89,7 +98,9 @@
           ErrorPlugin,
           BehaviorPlugin,
           PerformancePlugin,
-          PVPlugin
+          PVPlugin,
+          XHRPlugin,
+          FetchPlugin
         ],
         data: {
           env: 'preview',
@@ -122,6 +133,31 @@
       img.src = 'https://example.com/404.jpg';
       document.body.appendChild(img);
       setTimeout(() => img.remove(), 100);
+    });
+
+    // Network Triggers
+    document.getElementById('xhr-success').addEventListener('click', () => {
+      const xhr = new XMLHttpRequest();
+      xhr.open('GET', 'https://jsonplaceholder.typicode.com/todos/1');
+      xhr.send();
+    });
+
+    document.getElementById('xhr-error').addEventListener('click', () => {
+      const xhr = new XMLHttpRequest();
+      xhr.open('GET', 'https://jsonplaceholder.typicode.com/non-existent');
+      xhr.send();
+    });
+
+    document.getElementById('fetch-success').addEventListener('click', () => {
+      fetch('https://jsonplaceholder.typicode.com/todos/1');
+    });
+
+    document.getElementById('fetch-error').addEventListener('click', () => {
+      fetch('https://jsonplaceholder.typicode.com/non-existent');
+    });
+
+    document.getElementById('fetch-net-error').addEventListener('click', () => {
+      fetch('https://invalid-url-that-does-not-exist.com');
     });
   </script>
 </body>

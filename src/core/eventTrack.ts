@@ -9,8 +9,9 @@ import { EMIT_TYPE } from '../types/event';
  * EventTrack 类处理事件收集、批处理和传输
  */
 export default class EventTrack {
+  public url: string;
+
   private deviceInfo: DeviceInfo;
-  private url: string;
   private transportConfig: Required<TransportConfig>;
   private data?: Record<string, any>;
   private events: MonitoringPayload[] = [];
