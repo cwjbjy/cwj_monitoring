@@ -1,5 +1,6 @@
 import { IPlugin, PluginContext } from './definePlugin';
 import { EMIT_TYPE, TYPES } from '../types/event';
+import { isIgnoredScriptSource } from '../utils/common';
 
 import { DEFAULT_LOAF_THRESHOLD, DEFAULT_RESOURCE_THRESHOLD } from '../constant';
 
@@ -80,28 +81,50 @@ export const PerformancePlugin = (options: PerformanceOptions = {}): IPlugin => 
 
         const threshold = options.loafThreshold ?? DEFAULT_LOAF_THRESHOLD;
         if (entry.duration > threshold) {
-          context?.emit(EMIT_TYPE.PERFORMANCE_LOAF, {
-            duration: entry.duration,
-            startTime: entry.startTime,
-            renderStart: entry.renderStart,
-            styleAndLayoutStart: entry.styleAndLayoutStart,
-            hadRecentInput: entry.hadRecentInput,
-            scripts: entry.scripts.map((s: any) => ({
-              duration: s.duration,
-              invoker: s.invoker,
-              invokerType: s.invokerType,
-              sourceURL: s.sourceURL,
-              functionName: s.functionName,
-              startTime: s.startTime,
-            })),
-          });
+          const scripts = Array.isArray(entry.scripts) ? entry.scripts : [];
+          let isUserTriggered = false;
+          let allIgnored = true; // 是否所有脚本都属于忽略的来源
+
+          for (let i = 0; i < scripts.length; i++) {
+            const s = scripts[i];
+            if (!s) continue;
+
+            if (!isUserTriggered && s.invokerType === 'user-callback') isUserTriggered = true;
+
+            if (allIgnored && !isIgnoredScriptSource(s.sourceURL)) {
+              allIgnored = false;
+            }
+
+            // 若已发现用户触发且存在非忽略来源，可提前退出
+            if (isUserTriggered && !allIgnored) break;
+          }
+
+          if (isUserTriggered && !allIgnored) {
+            context?.emit(EMIT_TYPE.PERFORMANCE_LOAF, {
+              duration: entry.duration,
+              startTime: entry.startTime,
+              renderStart: entry.renderStart,
+              styleAndLayoutStart: entry.styleAndLayoutStart,
+              hadRecentInput: entry.hadRecentInput,
+              scripts: entry.scripts.map((s: any) => ({
+                duration: s.duration,
+                invoker: s.invoker,
+                invokerType: s.invokerType,
+                sourceURL: s.sourceURL,
+                functionName: s.functionName,
+                sourceFunctionName: s.sourceFunctionName,
+                sourceCharPosition: s.sourceCharPosition,
+                startTime: s.startTime,
+              })),
+            });
+          }
         }
       }
     };
 
     try {
       loafObserver = new PerformanceObserver(entryHandler);
-      loafObserver.observe({ type: 'long-animation-frame', buffered: true } as any);
+      loafObserver.observe({ type: 'long-animation-frame', buffered: true });
     } catch (e) {
       console.warn('[CWJ Monitor] LoAF observation not supported:', e);
     }

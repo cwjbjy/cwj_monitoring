@@ -13,3 +13,9 @@ export function throttle<T extends (...args: any[]) => any>(fn: T, delay: number
     }
   };
 }
+
+export const isIgnoredScriptSource = (sourceURL?: string) => {
+  if (!sourceURL || typeof sourceURL !== 'string') return false;
+  if (/node_modules/.test(sourceURL)) return true;
+  return false;
+};
