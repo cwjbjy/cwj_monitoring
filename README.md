@@ -91,22 +91,20 @@ interface TransportConfig {
 - **FP (First Paint)**: 首次绘制时间
 - **FCP (First Contentful Paint)**: 首次内容绘制时间
 - **LCP (Largest Contentful Paint)**: 最大内容绘制时间
-- **INP (Interaction to Next Paint)**: 交互到下一次绘制的延迟（关注交互响应性）
-- **Long Task**: 超过阈值的长任务（关注主线程阻塞）
+- **LoAF (Long Animation Frame)**: 现代化的长任务监控，提供详尽的脚本级归因（Chrome 123+）
 - **Resource**: 仅监听 `fetch` 与 `xmlhttprequest` 的网络请求耗时
 
 **配置项：**
 
-- `longTaskThreshold`: 长任务阈值 (ms)，默认 `100`
+- `loafThreshold`: LoAF 阈值 (ms)，默认 `50`
 - `resourceThreshold`: 资源加载阈值 (ms)，默认 `1000`
-- `inpThreshold`: INP 阈值 (ms)，默认 `200`
 - `filter`: 过滤函数，支持按类型过滤指标
 
 示例：
 
 ```typescript
 PerformancePlugin({
-  longTaskThreshold: 200, // 仅记录超过 200ms 的长任务
+  loafThreshold: 150, // 仅记录超过 150ms 的 LoAF
   resourceThreshold: 2000, // 仅记录超过 2s 的请求
 });
 ```

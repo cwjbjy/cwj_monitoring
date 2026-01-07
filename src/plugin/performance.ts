@@ -1,7 +1,7 @@
 import { IPlugin, PluginContext } from './definePlugin';
 import { EMIT_TYPE, TYPES } from '../types/event';
 
-import { DEFAULT_INP_THRESHOLD, DEFAULT_LONG_TASK_THRESHOLD, DEFAULT_RESOURCE_THRESHOLD } from '../constant';
+import { DEFAULT_LOAF_THRESHOLD, DEFAULT_RESOURCE_THRESHOLD } from '../constant';
 
 export interface PerformanceOptions {
   /** 过滤函数，返回 false 则不记录该性能指标 */
@@ -12,17 +12,16 @@ export interface PerformanceOptions {
   resourceThreshold?: number;
   /** INP 阈值 (ms)，超过此值则上报，默认 200 */
   inpThreshold?: number;
+  /** LoAF 阈值 (ms)，超过此值则上报，默认 100 */
+  loafThreshold?: number;
 }
 
 export const PerformancePlugin = (options: PerformanceOptions = {}): IPlugin => {
   let context: PluginContext;
   let paintObserver: PerformanceObserver | null = null;
   let lcpObserver: PerformanceObserver | null = null;
-  let inpObserver: PerformanceObserver | null = null;
-  let longTaskObserver: PerformanceObserver | null = null;
   let resourceObserver: PerformanceObserver | null = null;
-  // 存储交互事件的 Map: interactionId -> { entry, timeoutId }
-  const interactionMap = new Map<number, { entry: any; timeoutId: any }>();
+  let loafObserver: PerformanceObserver | null = null;
 
   const monitorPaintMetrics = () => {
     const entryHandler = (list: { getEntries: () => any }) => {
@@ -72,78 +71,39 @@ export const PerformancePlugin = (options: PerformanceOptions = {}): IPlugin => 
     }
   };
 
-  const monitorINP = () => {
+  const monitorLoAF = () => {
     const entryHandler = (list: { getEntries: () => any }) => {
       for (const entry of list.getEntries()) {
-        // 仅处理有 interactionId 的交互事件
-        if (!entry.interactionId) continue;
-
-        // 获取该 interactionId 已有的记录
-        const existing = interactionMap.get(entry.interactionId);
-        if (existing) {
-          clearTimeout(existing.timeoutId);
-        }
-
-        // 取耗时最长的事件作为该次交互的代表
-        const maxEntry = existing && existing.entry.duration > entry.duration ? existing.entry : entry;
-
-        // 防抖：200ms 内无新事件则上报
-        const timeoutId = setTimeout(() => {
-          interactionMap.delete(maxEntry.interactionId);
-
-          if (options.filter && !options.filter(EMIT_TYPE.PERFORMANCE_INP, maxEntry)) {
-            return;
-          }
-
-          // 只上报耗时超过阈值的事件
-          const threshold = options.inpThreshold ?? DEFAULT_INP_THRESHOLD;
-          if (maxEntry.duration > threshold) {
-            context?.emit(EMIT_TYPE.PERFORMANCE_INP, {
-              value: maxEntry.duration,
-              startTime: maxEntry.startTime,
-              name: maxEntry.name,
-              interactionId: maxEntry.interactionId,
-            });
-          }
-        }, 200);
-
-        interactionMap.set(entry.interactionId, { entry: maxEntry, timeoutId });
-      }
-    };
-
-    // 观察 'event' 类型，durationThreshold 默认为 40ms
-    try {
-      inpObserver = new PerformanceObserver(entryHandler);
-      inpObserver.observe({ type: 'event', buffered: true });
-    } catch (e) {
-      console.warn('[CWJ Monitor] INP observation not supported:', e);
-    }
-  };
-
-  const monitorLongTask = () => {
-    const entryHandler = (list: { getEntries: () => any }) => {
-      for (const entry of list.getEntries()) {
-        if (options.filter && !options.filter(EMIT_TYPE.PERFORMANCE_LONGTASK, entry)) {
+        if (options.filter && !options.filter(EMIT_TYPE.PERFORMANCE_LOAF, entry)) {
           continue;
         }
-        // 长任务默认时间为50ms，这里提高阀值，减少日志噪音
-        const threshold = options.longTaskThreshold ?? DEFAULT_LONG_TASK_THRESHOLD;
+
+        const threshold = options.loafThreshold ?? DEFAULT_LOAF_THRESHOLD;
         if (entry.duration > threshold) {
-          context?.emit(EMIT_TYPE.PERFORMANCE_LONGTASK, {
-            startTime: entry.startTime,
+          context?.emit(EMIT_TYPE.PERFORMANCE_LOAF, {
             duration: entry.duration,
-            name: entry.name,
-            attribution: entry.attribution,
+            startTime: entry.startTime,
+            renderStart: entry.renderStart,
+            styleAndLayoutStart: entry.styleAndLayoutStart,
+            hadRecentInput: entry.hadRecentInput,
+            scripts: entry.scripts.map((s: any) => ({
+              duration: s.duration,
+              invoker: s.invoker,
+              invokerType: s.invokerType,
+              sourceURL: s.sourceURL,
+              functionName: s.functionName,
+              startTime: s.startTime,
+            })),
           });
         }
       }
     };
 
     try {
-      longTaskObserver = new PerformanceObserver(entryHandler);
-      longTaskObserver.observe({ type: 'longtask', buffered: true });
+      loafObserver = new PerformanceObserver(entryHandler);
+      loafObserver.observe({ type: 'long-animation-frame', buffered: true } as any);
     } catch (e) {
-      console.warn('[CWJ Monitor] Long Task observation not supported:', e);
+      console.warn('[CWJ Monitor] LoAF observation not supported:', e);
     }
   };
 
@@ -189,19 +149,14 @@ export const PerformancePlugin = (options: PerformanceOptions = {}): IPlugin => 
       context = ctx;
       monitorPaintMetrics();
       monitorLCP();
-      monitorINP();
-      monitorLongTask();
       monitorResource();
+      monitorLoAF();
     },
     uninstall: () => {
       paintObserver?.disconnect();
       lcpObserver?.disconnect();
-      inpObserver?.disconnect();
-      longTaskObserver?.disconnect();
       resourceObserver?.disconnect();
-      // 清理所有待处理的 INP 定时器
-      interactionMap.forEach((value) => clearTimeout(value.timeoutId));
-      interactionMap.clear();
+      loafObserver?.disconnect();
     },
   };
 };

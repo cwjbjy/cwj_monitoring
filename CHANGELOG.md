@@ -1,5 +1,11 @@
 # cwj_monitoring
 
+## 0.0.25
+
+### Patch Changes
+
+- 监听LoAF
+
 ## 0.0.23
 
 ### Patch Changes
