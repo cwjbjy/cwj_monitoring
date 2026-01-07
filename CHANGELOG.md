@@ -1,5 +1,11 @@
 # cwj_monitoring
 
+## 0.0.26
+
+### Patch Changes
+
+- 性能监控优化
+
 ## 0.0.25
 
 ### Patch Changes
