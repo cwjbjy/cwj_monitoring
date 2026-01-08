@@ -14,6 +14,10 @@ export function throttle<T extends (...args: any[]) => any>(fn: T, delay: number
   };
 }
 
+/**
+ * 过滤函数
+ * @param sourceURL 文件地址
+ */
 export const isIgnoredScriptSource = (sourceURL?: string) => {
   if (!sourceURL || typeof sourceURL !== 'string') return false;
   if (/node_modules/.test(sourceURL)) return true;

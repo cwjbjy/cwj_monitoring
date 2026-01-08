@@ -1,5 +1,11 @@
 # cwj_monitoring
 
+## 0.0.27
+
+### Patch Changes
+
+- 性能追踪精准定位
+
 ## 0.0.26
 
 ### Patch Changes

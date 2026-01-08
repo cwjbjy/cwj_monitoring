@@ -21,4 +21,9 @@ export const DEFAULT_RESOURCE_THRESHOLD = 1000;
 /**
  * 默认 LoAF 阈值 (ms)
  */
-export const DEFAULT_LOAF_THRESHOLD = 50;
+export const DEFAULT_LOAF_THRESHOLD = 100;
+
+/**
+ * 默认 LoAF 单次事件阈值 (ms)
+ */
+export const DEFAULT_LOAF_SINGLETIME = 50;

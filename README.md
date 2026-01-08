@@ -96,7 +96,7 @@ interface TransportConfig {
 
 **配置项：**
 
-- `loafThreshold`: LoAF 阈值 (ms)，默认 `50`
+- `loafThreshold`: LoAF 阈值 (ms)，默认 `100`
 - `resourceThreshold`: 资源加载阈值 (ms)，默认 `1000`
 - `filter`: 过滤函数，支持按类型过滤指标
 
