@@ -1,3 +1,10 @@
+# [0.1.0](https://github.com/cwjbjy/cwj_monitoring/compare/v0.0.27...v0.1.0) (2026-01-09)
+
+
+### Features
+
+* 使用自动化发布 ([3062903](https://github.com/cwjbjy/cwj_monitoring/commit/3062903fe5be46d05a31ae5160fd622cf258e851))
+
 # cwj_monitoring
 
 ## 0.0.27
