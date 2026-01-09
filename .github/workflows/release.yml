@@ -1,0 +1,43 @@
+name: Release
+
+# 当 master 分支被 push,就会触发
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - master
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 获取源码
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: 安装 pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+
+      - name: 安装 nodejs
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: 'pnpm'
+
+      - name: 安装依赖并构建
+        run: |
+          pnpm install
+          pnpm run build
+
+      - name: 发布 npm 包
+        env:
+          GITHUB_TOKEN: ${{ secrets.PUBLISH_GH_TOKEN }}
+          NPM_TOKEN: ${{ secrets.PUBLISH_NPM_TOKEN }}
+        run: |
+          npm cache clean --force
+          npx semantic-release
