@@ -74,7 +74,7 @@ export default class Reporter {
       if (this.events.length) {
         nextTime(() => this.triggerSend());
       }
-    } catch (error) {
+    } catch {
       // 失败处理逻辑，目前简单忽略
     } finally {
       this.isSending = false;
