@@ -13,6 +13,7 @@ describe('Reporter', () => {
 
     class MockXHR {
       constructor() {
+        // eslint-disable-next-line @typescript-eslint/no-this-alias
         lastXHRInstance = this;
       }
       open = vi.fn();

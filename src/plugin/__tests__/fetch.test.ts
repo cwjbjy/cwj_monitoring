@@ -64,7 +64,7 @@ describe('FetchPlugin', () => {
 
     try {
       await fetch('http://api.example.com/data');
-    } catch (e) {
+    } catch {
       // expected
     }
 
