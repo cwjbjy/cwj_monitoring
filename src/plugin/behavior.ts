@@ -44,17 +44,17 @@ export const BehaviorPlugin = (options: BehaviorOptions = {}): IPlugin => {
       xPath: getElementXPath(target),
     };
 
-    context?.emit(EMIT_TYPE.BEHAVIOR_CLICK, clickData);
+    context?.emit(EMIT_TYPE.CLICK, clickData);
   }, throttleDelay);
 
   return {
     name: TYPES.CLICK,
     install: (ctx: PluginContext) => {
       context = ctx;
-      document.addEventListener(EMIT_TYPE.BEHAVIOR_CLICK, handleClick, true);
+      document.addEventListener(EMIT_TYPE.CLICK, handleClick, true);
     },
     uninstall: () => {
-      document.removeEventListener(EMIT_TYPE.BEHAVIOR_CLICK, handleClick, true);
+      document.removeEventListener(EMIT_TYPE.CLICK, handleClick, true);
     },
   };
 };

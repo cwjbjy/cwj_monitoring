@@ -20,7 +20,7 @@ export enum EMIT_TYPE {
   ERROR = 'error',
 
   // 行为事件
-  BEHAVIOR_CLICK = 'click',
+  CLICK = 'click',
   ROUTE_CHANGE = 'route_change',
 
   // 性能事件 - Core Web Vitals
