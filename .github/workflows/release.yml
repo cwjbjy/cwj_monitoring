@@ -19,7 +19,7 @@ jobs:
           persist-credentials: false
 
       - name: 安装 pnpm
-        uses: pnpm/action-setup@v2
+        uses: pnpm/action-setup@v5
         with:
           version: 8
 
